@@ -1,1507 +1,948 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>UIC PTO Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#edecea;color:#1a1a18;min-height:100vh;font-size:14px}
-:root{
-  --bg:#edecea;--surface:#fff;--surface2:#f5f4f1;--border:#e0deda;
-  --text:#1a1a18;--muted:#7a7874;--accent:#2d6a22;--accent-light:#eaf5e6;
-  --danger:#c0392b;--danger-light:#fdf0ef;--warn:#b5651d;--warn-light:#fef8f0;
-  --info:#1a4d7c;--info-light:#eaf1fb;--today-bg:#e8f0fe;--today-bd:#4285f4;
-  --holiday:#c0392b;--holiday-light:#fdf0ef;
-}
-.app{display:flex;min-height:100vh}
-.sidebar{width:200px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
-/* Mobile responsive */
+// ─────────────────────────────────────────────────────────────────
+// Code.gs  -  UIC PTO Tracker
+// ─────────────────────────────────────────────────────────────────
 
-.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);font-size:16px;font-weight:600;color:var(--accent)}
-.sb-logo span{color:var(--muted);font-weight:400}
-.sb-pill{margin:10px 12px 0;padding:5px 10px;border-radius:7px;font-size:10.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
-.sb-pill.admin{background:var(--accent-light);color:var(--accent)}
-.sb-pill.emp{background:var(--info-light);color:var(--info)}
-.sb-nav{padding:10px 8px;flex:1}
-.sb-sec{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;padding:8px 8px 3px}
-.nav-i{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--muted);margin-bottom:1px;transition:all .12s}
-.nav-i:hover{background:var(--surface2);color:var(--text)}
-.nav-i.on{background:var(--accent-light);color:var(--accent);font-weight:500}
-.nav-i svg{width:14px;height:14px;flex-shrink:0}
-.sb-user{padding:10px 8px 12px;border-top:1px solid var(--border)}
-.sb-urow{display:flex;align-items:center;gap:8px;padding:6px 8px;margin-bottom:6px}
-.btn-lo{width:100%;padding:7px 10px;background:none;border:1px solid var(--border);border-radius:7px;cursor:pointer;font-size:12.5px;color:var(--muted);font-family:'Inter',sans-serif;transition:all .12s}
-.btn-lo:hover{background:var(--surface2)}
-.main{flex:1;overflow-y:auto;padding:24px 28px}
-/* EMP SHELL */
-.emp-shell{background:var(--surface);border-radius:14px;border:1px solid var(--border);overflow:hidden}
-.emp-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 4px}
-.emp-tab{padding:14px 15px;font-size:13.5px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s;white-space:nowrap}
-.emp-tab:hover{color:var(--text)}
-.emp-tab.on{color:var(--text);border-bottom-color:var(--text)}
-.emp-body{padding:22px}
-/* STATS */
-.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.stat-card{background:var(--surface2);border-radius:10px;padding:14px 16px;border:1px solid var(--border)}
-.stat-lbl{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
-.stat-val{font-size:22px;font-weight:600;letter-spacing:-.5px}
-.stat-val.g{color:#1e7e34}.stat-val.o{color:#c06000}
-.stat-sub{font-size:11.5px;color:var(--muted);margin-top:3px}
-/* SECTION BOX */
-.sbox{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px}
-.stitle{font-size:10.5px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
-/* PROGRESS */
-.prog-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin:8px 0 10px}
-.prog-bar{height:100%;border-radius:4px;transition:width .4s}
-/* TAGS */
-.tags{display:flex;gap:6px;flex-wrap:wrap}
-.tag{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
-.tag.blue{background:#e8f0fe;color:#1a4d7c}
-.tag.green{background:var(--accent-light);color:var(--accent)}
-.tag.gray{background:var(--surface);border:1px solid var(--border);color:var(--muted)}
-/* FORM */
-.fgrp{margin-bottom:12px}
-.flbl{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:5px}
-.finp,.fsel{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;font-family:'Inter',sans-serif;background:var(--surface);color:var(--text);outline:none;transition:border .12s}
-.finp:focus,.fsel:focus{border-color:#4285f4;box-shadow:0 0 0 3px rgba(66,133,244,.12)}
-.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.info-banner{background:var(--info-light);border:1px solid #b5cfe8;border-radius:8px;padding:10px 14px;font-size:13px;color:var(--info);margin-bottom:16px}
-.btn-sub{padding:10px 20px;background:var(--text);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif}
-.btn-sub:hover{opacity:.88}
-.limits-box{margin-top:18px;border-top:1px solid var(--border);padding-top:16px}
-.lim-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px}
-.lim-lbl{font-size:12px;color:var(--muted)}
-.lim-val{font-size:14px;font-weight:600;margin-top:2px}
-/* CALENDAR */
-.cal-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:14px}
-.cal-nav-row{display:flex;align-items:center;margin-bottom:16px}
-.cal-ttl{font-size:16px;font-weight:600;flex:1}
-.btn-cal{padding:5px 12px;background:var(--surface);border:1px solid var(--border);border-radius:7px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif}
-.btn-cal+.btn-cal{margin-left:4px}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
-.cal-dow{text-align:center;font-size:12px;font-weight:500;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--border)}
-.cal-cell{min-height:68px;padding:5px 7px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);font-size:12px;vertical-align:top}
-.cal-cell:nth-child(7n){border-right:none}
-.cal-cell.other{color:#ccc}
-.cal-cell.today-cell{background:var(--today-bg)}
-.cal-cell.has-pto{background:var(--accent-light)}
-.cal-cell.has-holiday{background:var(--holiday-light)}
-.cal-cell.has-pto.has-holiday{background:linear-gradient(135deg,var(--accent-light) 50%,var(--holiday-light) 50%)}
-.cal-num-today{background:var(--today-bd);color:#fff;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:12px}
-.pto-dot{background:var(--accent);color:#fff;border-radius:3px;font-size:10px;padding:1px 5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hol-dot{background:var(--holiday);color:#fff;border-radius:3px;font-size:10px;padding:1px 5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cal-legend{display:flex;gap:14px;margin-top:10px;font-size:12px;color:var(--muted);align-items:center;flex-wrap:wrap}
-.l-dot{width:12px;height:12px;border-radius:3px;border:1px solid var(--border);display:inline-block;flex-shrink:0}
-/* TABLES */
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:8px 10px;border-bottom:1px solid var(--border)}
-td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text)}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--surface2)}
-/* ADMIN */
-.pg-title{font-size:20px;font-weight:600;letter-spacing:-.3px;margin-bottom:4px}
-.pg-sub{font-size:13px;color:var(--muted);margin-bottom:18px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:14px}
-.card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:14px}
-.filter-tabs{display:flex;gap:2px;background:var(--surface2);padding:3px;border-radius:9px;margin-bottom:14px;width:fit-content;border:1px solid var(--border)}
-.ftab{padding:5px 14px;border-radius:7px;font-size:13px;cursor:pointer;font-weight:500;color:var(--muted);border:none;background:none;font-family:'Inter',sans-serif;transition:all .12s}
-.ftab.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
-/* BADGES */
-.bdg{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:500}
-.bdg.g{background:var(--accent-light);color:var(--accent)}
-.bdg.r{background:var(--danger-light);color:var(--danger)}
-.bdg.y{background:var(--warn-light);color:var(--warn)}
-.bdg.b{background:var(--info-light);color:var(--info)}
-.bdg.gr{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
-.bdg.pur{background:#fdf0ef;color:#c0392b;border:1px solid #f5c6c6}
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);font-family:'Inter',sans-serif;background:var(--surface);color:var(--text);transition:all .12s}
-.btn:hover{background:var(--surface2)}
-.btn.ok{background:var(--accent-light);color:var(--accent);border-color:#b8ddb5}.btn.ok:hover{background:#d3eed0}
-.btn.no{background:var(--danger-light);color:var(--danger);border-color:#f5c6c6}.btn.no:hover{background:#f9d5d3}
-.btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.pri:hover{opacity:.88}
-.btn.sm{padding:4px 10px;font-size:12px}
-/* ALERTS */
-.alert{padding:9px 13px;border-radius:8px;font-size:13px;margin-bottom:12px}
-.alert.err{background:var(--danger-light);color:var(--danger);border:1px solid #f5c6c6}
-.alert.info{background:var(--info-light);color:var(--info);border:1px solid #b5cfe8}
-/* MODAL */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:100;display:flex;align-items:center;justify-content:center}
-.modal{background:var(--surface);border-radius:14px;padding:22px;width:500px;max-height:85vh;overflow-y:auto;border:1px solid var(--border)}
-.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.modal-hdr h3{font-size:15px;font-weight:600}
-.modal-x{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:2px 6px}
-/* LOGIN */
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)}
-.login-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:34px;width:370px}
-.login-logo{font-size:24px;font-weight:600;color:var(--accent);text-align:center;margin-bottom:3px}
-.login-sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:24px}
-/* MISC */
-.empty{text-align:center;padding:32px;color:var(--muted);font-size:13.5px}
-.chip{display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-size:11.5px;color:var(--muted)}
-.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0}
-.toast{position:fixed;top:16px;right:16px;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.12)}
+var SS = SpreadsheetApp.getActiveSpreadsheet();
 
-/* ── MOBILE RESPONSIVE ───────────────────────────────────────────── */
+// ── WEB APP ENTRY POINT ──────────────────────────────────────────
+function doGet(e) {
+  var action    = e && e.parameter ? e.parameter.action    : null;
+  var requestId = e && e.parameter ? e.parameter.requestId : null;
+  var token     = e && e.parameter ? e.parameter.token     : null;
 
-/* Mobile nav hidden by default on desktop */
-.mobile-nav { display: none; }
-.mobile-header { display: none; }
-/* ── MOBILE — uses both media query AND data-mobile attribute ── */
-@media screen and (max-width: 768px) { :root { --is-mobile: 1; } }
-/* Combined selector approach */
-.sidebar { transition: none; }
-[data-mobile] .sidebar { display: none !important; }
-[data-mobile] .mobile-nav { display: flex !important; position: fixed; bottom: 0; left: 0; right: 0; z-index: 90; background: var(--surface); border-top: 1px solid var(--border); height: 60px; }
-[data-mobile] .mobile-header { display: flex !important; position: sticky; top: 0; z-index: 80; background: #2d6a22; color: #fff; padding: 10px 14px; align-items: center; gap: 10px; margin: 0; }
-[data-mobile] .app { flex-direction: column !important; }
-[data-mobile] .main { padding: 12px 12px 72px 12px !important; width: 100% !important; max-width: 100% !important; }
-[data-mobile] .stat-row { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-[data-mobile] .f2 { grid-template-columns: 1fr !important; }
-[data-mobile] .lim-grid { grid-template-columns: 1fr 1fr !important; }
-[data-mobile] .emp-shell { border-radius: 8px !important; }
-[data-mobile] .emp-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-[data-mobile] .emp-tab { padding: 11px 13px !important; font-size: 13px !important; white-space: nowrap; }
-[data-mobile] .emp-body { padding: 12px !important; }
-[data-mobile] .finp,[data-mobile] .fsel { font-size: 16px !important; }
-[data-mobile] .card { border-radius: 10px !important; }
-[data-mobile] .modal { width: calc(100vw - 24px) !important; margin: 0 12px; max-height: 90vh !important; }
-[data-mobile] .pg-title { font-size: 17px !important; }
-[data-mobile] .pg-sub { font-size: 12px !important; }
-[data-mobile] .sbox { border-radius: 10px !important; }
-[data-mobile] .cal-cell { min-height: 44px !important; padding: 3px 4px !important; font-size: 11px !important; }
-[data-mobile] .cal-ttl { font-size: 14px !important; }
-[data-mobile] .btn-sub { width: 100% !important; }
-[data-mobile] .tag { font-size: 11px !important; padding: 2px 6px !important; }
-[data-mobile] table { font-size: 12px !important; }
-[data-mobile] th,[data-mobile] td { padding: 6px 8px !important; }
-[data-mobile] .hide-mobile { display: none !important; }
-[data-mobile] .filter-tabs { overflow-x: auto; width: 100%; }
-/* Also keep @media as fallback */
-@media screen and (max-width: 768px) {
-  .sidebar { display: none !important; }
-  .mobile-nav { display: flex !important; position: fixed; bottom: 0; left: 0; right: 0; z-index: 90; background: var(--surface); border-top: 1px solid var(--border); height: 60px; }
-  .mobile-header { display: flex !important; position: sticky; top: 0; z-index: 80; background: #2d6a22; color: #fff; padding: 10px 14px; align-items: center; gap: 10px; }
-  .app { flex-direction: column !important; }
-  .main { padding: 12px 12px 72px 12px !important; width: 100% !important; }
-  .stat-row { grid-template-columns: 1fr 1fr !important; }
-  .f2 { grid-template-columns: 1fr !important; }
-  .emp-tab { padding: 11px 13px !important; font-size: 13px !important; white-space: nowrap; }
-  .emp-body { padding: 12px !important; }
-  .finp,.fsel { font-size: 16px !important; }
-  table { font-size: 12px !important; }
-  th,td { padding: 6px 8px !important; }
-}
-
-/* JS-based fallback for Apps Script iframe — class added by JS */
-/* Hide less important table columns on mobile */
-
-@media screen and (max-width: 768px) {
-
-  /* Hide sidebar, show mobile nav instead */
-  .sidebar { display: none !important; }
-  .mobile-nav {
-    display: flex !important;
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    z-index: 999;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
-  }
-  .mobile-header {
-    display: flex !important;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px 8px;
-    background: var(--accent);
-    position: sticky;
-    top: 0;
-    z-index: 40;
-  }
-  .mobile-header-name { font-size: 13px; font-weight: 500; color: #fff; }
-  .mobile-header-email { font-size: 11px; color: rgba(255,255,255,0.7); }
-  .mobile-mode-badge {
-    margin-left: auto;
-    background: rgba(255,255,255,0.15);
-    border-radius: 20px;
-    padding: 3px 10px;
-    font-size: 11px;
-    font-weight: 500;
-    color: #fff;
-    white-space: nowrap;
-  }
-  .mobile-nav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 4px 6px;
-    cursor: pointer;
-    font-size: 10px;
-    color: var(--muted);
-    gap: 3px;
-    border: none;
-    background: none;
-    font-family: 'Inter', sans-serif;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .mobile-nav-item.on { color: var(--accent); font-weight: 600; }
-  .mobile-nav-item svg { width: 22px; height: 22px; }
-
-  /* Layout */
-  .app { flex-direction: column; }
-  .main { padding: 0 0 76px 0; width: 100%; max-width: 100%; }
-
-  /* Employee shell */
-  .emp-shell { border-radius: 0; border-left: none; border-right: none; border-top: none; }
-  .emp-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .emp-tabs::-webkit-scrollbar { display: none; }
-  .emp-tab { white-space: nowrap; padding: 11px 14px; font-size: 13px; }
-  .emp-body { padding: 12px; }
-
-  /* Stat grids — 2 col */
-  .stat-row { grid-template-columns: 1fr 1fr !important; gap: 8px; }
-
-  /* Sections */
-  .sbox { padding: 12px 14px; margin-bottom: 10px; }
-  .stitle { font-size: 10px; }
-
-  /* Cards */
-  .card { margin: 8px; border-radius: 10px; padding: 14px; }
-  .cal-wrap { margin: 8px; border-radius: 10px; }
-
-  /* Forms — single column, prevent iOS zoom */
-  .f2 { grid-template-columns: 1fr !important; }
-  .finp, .fsel { font-size: 16px !important; }
-
-  /* Filter tabs */
-  .filter-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; width: calc(100% - 16px); margin: 8px; }
-  .filter-tabs::-webkit-scrollbar { display: none; }
-
-  /* Tables */
-  .card > table, .sbox > table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
-  table { font-size: 12px; min-width: 400px; }
-
-  /* Calendar */
-  .cal-cell { min-height: 40px; padding: 3px 2px; font-size: 10px; }
-  .pto-dot, .hol-dot { font-size: 8px; padding: 1px 2px; }
-  .cal-nav-row { flex-wrap: wrap; gap: 6px; }
-
-  /* Page titles */
-  .pg-title { font-size: 17px; padding: 12px 12px 0; }
-  .pg-sub { padding: 2px 12px 0; font-size: 12px; }
-
-  /* Limits */
-  .lim-grid { grid-template-columns: 1fr 1fr; gap: 10px 16px; }
-
-  /* Modal */
-  .modal { width: calc(100vw - 32px); max-height: 90vh; margin: 0 16px; }
-  .overlay { align-items: flex-end; padding-bottom: env(safe-area-inset-bottom, 0px); }
-
-  /* Buttons */
-  .btn-sub { width: 100%; }
-
-  /* Admin overview stats */
-  div[style*="grid-template-columns:repeat(4,1fr)"] { grid-template-columns: 1fr 1fr !important; }
-}
-
-</style>
-</head>
-<body>
-<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;color:var(--muted)">Loading...</div></div>
-
-<script>
-const USE_APPS_SCRIPT = true;
-
-// ── MOBILE DETECTION ─────────────────────────────────────────────
-// Runs immediately — forces mobile class before first render
-// Uses multiple signals since Apps Script iframe can block media queries
-(function forceMobile(){
-  function check(){
-    var touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
-    var narrow = (window.innerWidth || screen.width || 9999) < 769;
-    var phone = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
-    if(touch || narrow || phone){
-      document.documentElement.setAttribute('data-mobile','1');
-      document.body && document.body.setAttribute('data-mobile','1');
+  // One-click approve/deny from manager email
+  if ((action === 'approve' || action === 'deny') && requestId && token) {
+    if (!validateToken(requestId, token)) {
+      return HtmlService.createHtmlOutput('<h2 style="font-family:sans-serif">Invalid or expired link.</h2>');
     }
+    var status = action === 'approve' ? 'Approved' : 'Denied';
+    updateRequestStatus(requestId, status);
+    return HtmlService.createHtmlOutput(
+      '<div style="font-family:sans-serif;text-align:center;padding:60px 20px">'
+      + '<h2 style="color:' + (action === 'approve' ? '#2d6a22' : '#c0392b') + '">Request ' + status + '</h2>'
+      + '<p style="color:#7a7874">The employee has been notified automatically.</p>'
+      + '<a href="' + ScriptApp.getService().getUrl() + '" style="color:#2d6a22">Go to PTO portal -></a>'
+      + '</div>'
+    );
   }
-  check();
-  document.addEventListener('DOMContentLoaded', check);
-  window.addEventListener('resize', check);
-})();
 
-// ── PAID HOLIDAYS ────────────────────────────────────────────────
-// Fallback hardcoded list used in demo mode (USE_APPS_SCRIPT=false).
-// In production, holidays are loaded from the Holidays sheet tab.
-// To update for a new year: just edit the Holidays tab in Google Sheets.
-const HOLIDAYS_FALLBACK = [
-  {date:"2026-01-01", name:"New Year's Day"},
-  {date:"2026-02-16", name:"Presidents Day"},
-  {date:"2026-05-25", name:"Memorial Day"},
-  {date:"2026-07-03", name:"Independence Day (Observed)"},
-  {date:"2026-09-07", name:"Labor Day"},
-  {date:"2026-11-26", name:"Thanksgiving Day"},
-  {date:"2026-11-27", name:"Black Friday"},
-  {date:"2026-12-24", name:"Christmas Eve"},
-  {date:"2026-12-25", name:"Christmas Day"},
-  {date:"2026-12-31", name:"New Year's Eve"},
-];
-// Active holidays list — replaced at boot when loaded from Sheet
-let HOLIDAYS_2026 = HOLIDAYS_FALLBACK;
-function getHoliday(ds){return HOLIDAYS_2026.find(h=>h.date===ds)||null;}
+  // Normal app load
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('UIC PTO Tracker')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
 
-//const USE_APPS_SCRIPT = true;
-
-// ── MOBILE DETECTION ─────────────────────────────────────────────
-// Runs immediately — forces mobile class before first render
-// Uses multiple signals since Apps Script iframe can block media queries
-(function forceMobile(){
-  function check(){
-    var touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
-    var narrow = (window.innerWidth || screen.width || 9999) < 769;
-    var phone = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
-    if(touch || narrow || phone){
-      document.documentElement.setAttribute('data-mobile','1');
-      document.body && document.body.setAttribute('data-mobile','1');
-    }
-  }
-  check();
-  document.addEventListener('DOMContentLoaded', check);
-  window.addEventListener('resize', check);
-})();
-
-// ── PAID HOLIDAYS ────────────────────────────────────────────────
-// Fallback hardcoded list used in demo mode (USE_APPS_SCRIPT=false).
-// In production, holidays are loaded from the Holidays sheet tab.
-// To update for a new year: just edit the Holidays tab in Google Sheets.
-/*
-const HOLIDAYS_FALLBACK = [
-  {date:"2026-01-01", name:"New Year's Day"},
-  {date:"2026-02-16", name:"Presidents Day"},
-  {date:"2026-05-25", name:"Memorial Day"},
-  {date:"2026-07-03", name:"Independence Day (Observed)"},
-  {date:"2026-09-07", name:"Labor Day"},
-  {date:"2026-11-26", name:"Thanksgiving Day"},
-  {date:"2026-11-27", name:"Black Friday"},
-  {date:"2026-12-24", name:"Christmas Eve"},
-  {date:"2026-12-25", name:"Christmas Day"},
-  {date:"2026-12-31", name:"New Year's Eve"},
-];
-*/
-// Active holidays list — replaced at boot when loaded from Sheet
-let HOLIDAYS_2026 = HOLIDAYS_FALLBACK;
-function getHoliday(ds){return HOLIDAYS_2026.find(h=>h.date===ds)||null;}
+// ── SESSION ───────────────────────────────────────────────────────
+function getSession() {
+  var email = Session.getActiveUser().getEmail();
+  if (!email) return null;
+  var emp = getEmployee(email);
+  if (!emp) return null;
+  return { email: emp.email, name: emp.name, role: emp.role };
+}
 
 // ── EMPLOYEES ────────────────────────────────────────────────────
-// ⚠️  DEMO MODE ONLY (USE_APPS_SCRIPT=false)
-// In production (Apps Script), employees are loaded from the Google Sheet.
-// To add/edit employees in production → just update the Employees tab in Google Sheets.
-// Only update this array if you need to test locally in a browser.
-// ── ACCRUAL ──────────────────────────────────────────────────────
-function yrs(sd){const s=new Date(sd),n=new Date();let y=n.getFullYear()-s.getFullYear();if(n<new Date(n.getFullYear(),s.getMonth(),s.getDate()))y--;return Math.max(0,y);}
-function allowance(e){
-  // Part-time gets same allowance as full-time based on years of service
-  return yrs(e.startDate)>=5?160:120;
-}
-function cap(e){return allowance(e)*1.5;}
-function rate(e){return allowance(e)/24;}
-function conseq(e){
-  // Only difference for part-time: consecutive limit is 40h
-  if(e.partTime)return 40;
-  return yrs(e.startDate)>=5?120:80;
-}
-// Build a sorted list of all semi-monthly period dates in current year up to (not including) today
-// Accrual posts the day AFTER the period closes: Apr 30 → available May 1
-// Format a Date as YYYY-MM-DD using LOCAL time (not UTC)
-// Avoids timezone shift where Apr 30 midnight local = Apr 29 UTC
-function localDateStr(d){
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-function nextDayStr(dateStr){
-  const d=new Date(dateStr+'T12:00:00');d.setDate(d.getDate()+1);return localDateStr(d);
-}
-// Count weekdays Mon-Fri inclusive between two date strings
-function weekdaysInclusive(startStr,endStr){
-  let count=0;
-  const d=new Date(startStr+'T12:00:00'),end=new Date(endStr+'T12:00:00');
-  while(d<=end){if(d.getDay()!==0&&d.getDay()!==6)count++;d.setDate(d.getDate()+1);}
-  return count;
-}
-// Split a PTO request at semi-monthly period boundaries by weekday proportion
-// e.g. 3/30-4/3 40h split at Mar31 → [{endDate:'2026-03-31',hours:16},{endDate:'2026-04-03',hours:24}]
-function splitAtBoundaries(startStr,endStr,totalHours,periodStrs){
-  const totalDays=weekdaysInclusive(startStr,endStr);
-  if(totalDays===0)return [{endDate:endStr,hours:totalHours}];
-  const hPerDay=totalHours/totalDays;
-  const segments=[];
-  let segStart=startStr,remaining=totalHours;
-  for(let i=0;i<periodStrs.length;i++){
-    const boundary=periodStrs[i];
-    if(boundary>=segStart&&boundary<endStr){
-      const daysInSeg=weekdaysInclusive(segStart,boundary);
-      const hoursInSeg=Math.round(daysInSeg*hPerDay*100)/100;
-      if(hoursInSeg>0){segments.push({endDate:boundary,hours:hoursInSeg});remaining=Math.round((remaining-hoursInSeg)*100)/100;}
-      segStart=nextDayStr(boundary);
+function getEmployee(email) {
+  var sheet = SS.getSheetByName('Employees');
+  if (!sheet) return null;
+  var rows    = sheet.getDataRange().getValues();
+  var headers = rows[0];
+  for (var i = 1; i < rows.length; i++) {
+    var row = {};
+    for (var j = 0; j < headers.length; j++) {
+      row[headers[j]] = rows[i][j];
+    }
+    if (row['email'] === email) {
+      return cleanEmployee(row);
     }
   }
-  if(remaining>0)segments.push({endDate:endStr,hours:remaining});
-  return segments;
+  return null;
 }
-// Get completed semi-monthly period date strings in current year, strictly before today
-function getPeriodDates(sd){
-  const today=new Date(),todayStr=localDateStr(today);
-  const hire=new Date(sd+'T12:00:00');
-  const curYear=today.getFullYear();
-  const effectiveStart=hire>new Date(curYear,0,1)?hire:new Date(curYear,0,1);
-  const effectiveStr=localDateStr(effectiveStart);
-  const dates=[];
-  for(let mo=0;mo<12;mo++){
-    const p15Str=localDateStr(new Date(curYear,mo,15));
-    const peStr=localDateStr(new Date(curYear,mo+1,0));
-    if(p15Str<todayStr&&p15Str>=effectiveStr)dates.push(p15Str);
-    if(peStr<todayStr&&peStr>=effectiveStr)dates.push(peStr);
-  }
-  return dates.sort();
-}
-// Simulate balance period-by-period, splitting PTO requests at boundaries
-// Correctly handles cap interactions when PTO spans a period boundary
-function bal(e,reqs,adjs){
-  const DEDUCTIBLE=['Paid Time Off'];
-  const empRate=rate(e),empCap=cap(e);
-  const empAdj=(adjs||[]).filter(a=>a.email===e.email).reduce((s,a)=>s+Number(a.delta),0);
-  const periodStrs=getPeriodDates(e.startDate);
-  const today=localDateStr(new Date());
-  // Only deduct PTO whose START DATE has already passed or is today
-  // Future approved PTO does not deduct until the leave actually begins
-  const ptoSegments=[];
-  (reqs||[]).filter(r=>r.employeeEmail===e.email&&r.status==='Approved'&&DEDUCTIBLE.includes(r.type)&&r.startDate<=today)
-    .forEach(r=>splitAtBoundaries(r.startDate,r.endDate,Number(r.hours),periodStrs).forEach(seg=>ptoSegments.push(seg)));
-  ptoSegments.sort((a,b)=>a.endDate.localeCompare(b.endDate));
-  let balance=Math.min(Number(e.carryover||0)+empAdj,empCap),usedIdx=0;
-  for(let i=0;i<periodStrs.length;i++){
-    const pdStr=periodStrs[i];
-    while(usedIdx<ptoSegments.length&&ptoSegments[usedIdx].endDate<=pdStr){
-      balance=Math.max(0,balance-ptoSegments[usedIdx].hours);usedIdx++;
+
+function getAllEmployees() {
+  var sheet = SS.getSheetByName('Employees');
+  if (!sheet) return [];
+  var rows    = sheet.getDataRange().getValues();
+  var headers = rows[0];
+  var result  = [];
+  for (var i = 1; i < rows.length; i++) {
+    var row = {};
+    for (var j = 0; j < headers.length; j++) {
+      row[headers[j]] = rows[i][j];
     }
-    balance=Math.min(balance+empRate,empCap);
-  }
-  while(usedIdx<ptoSegments.length){balance=Math.max(0,balance-ptoSegments[usedIdx].hours);usedIdx++;}
-  return Math.max(0,balance);
-}
-function accrued(e){
-  const empRate=rate(e),empCap=cap(e);
-  let balance=Math.min(Number(e.carryover||0),empCap);
-  getPeriodDates(e.startDate).forEach(()=>{balance=Math.min(balance+empRate,empCap);});
-  return balance;
-}
-function periods(sd){return getPeriodDates(sd).length;}
-function todayStr(){return localDateStr(new Date());}
-function pendHrs(e,reqs){return(reqs||[]).filter(r=>r.employeeEmail===e.email&&r.status==='Pending').reduce((s,r)=>s+Number(r.hours),0);}
-
-function nextAccrual(){
-  const t=new Date(),d=t.getDate(),m=t.getMonth(),y=t.getFullYear();
-  const last=new Date(y,m+1,0).getDate();
-  let n;if(d<15)n=new Date(y,m,15);else if(d<last)n=new Date(y,m+1,0);else n=new Date(y,m+1,15);
-  return n.toISOString().slice(0,10);
-}
-
-// ── STATE ────────────────────────────────────────────────────────
-const S={
-  sess:null,emps:[],reqs:[],adjs:[],
-  mode:'emp',
-  etab:'mypto',
-  apage:'home',
-  aflt:'Pending',
-  cal:new Date(),
-  modal:null,mdata:null,
-  expandedEmp:null,
-  menuOpen:false,
-  toast:null,
-};
-function set(p){Object.assign(S,p);render();}
-function persist(){if(!USE_APPS_SCRIPT)localStorage.setItem('pto6',JSON.stringify({reqs:S.reqs,adjs:S.adjs}));}
-
-// ── BOOT ─────────────────────────────────────────────────────────
-(function(){
-  // Mobile detection — checks touch capability AND screen width
-  // Uses screen.width (not window.innerWidth) to handle Apps Script iframe correctly
-  function checkMobile(){
-    var isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-    var w = screen.width || window.innerWidth || document.documentElement.clientWidth;
-    if(isTouchDevice || w <= 900){
-      document.body.classList.add('is-mobile');
-    } else {
-      document.body.classList.remove('is-mobile');
+    if (row['email']) {
+      result.push(cleanEmployee(row));
     }
   }
-  checkMobile();
-  window.addEventListener('resize', checkMobile);
+  return result;
+}
 
-  if(USE_APPS_SCRIPT){
-    // Show error if loading takes more than 12 seconds
-    var bootTimer=setTimeout(function(){
-      document.getElementById('root').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;color:#7a7874;gap:12px">'
-        +'<div style="font-size:16px;font-weight:500;color:#c0392b;">Could not connect to Google Apps Script</div>'
-        +'<div style="font-size:13px;max-width:360px;text-align:center">This usually means the Sheet columns do not match, or your email is not in the Employees tab. Check the Apps Script logs for details.</div>'
-        +'<button onclick="location.reload()" style="margin-top:8px;padding:8px 20px;background:#2d6a22;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px">Retry</button>'
-        +'</div>';
-    },12000);
-    google.script.run
-      .withSuccessHandler(function(sess){
-        clearTimeout(bootTimer);
-        if(!sess||!sess.email){
-          document.getElementById('root').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;color:#7a7874;gap:12px">'
-            +'<div style="font-size:16px;font-weight:500;color:#c0392b;">Access denied</div>'
-            +'<div style="font-size:13px;max-width:360px;text-align:center">Your Google account was not found in the employee list. Please contact your admin.</div>'
-            +'</div>';
-          return;
-        }
-        S.sess=sess;
-        var fns=['getAllEmployees','getAllRequests','getBalanceAdjustments','getHolidays'];
-        var results=[];
-        var done=0;
-        fns.forEach(function(fn,i){
-          google.script.run
-            .withSuccessHandler(function(data){results[i]=data||[];done++;if(done===4){
-              S.emps=results[0];S.reqs=results[1];S.adjs=results[2];
-              if(results[3]&&results[3].length>0)HOLIDAYS_2026=results[3];
-              set({});
-              startAutoRefresh(); // begin polling for external changes
-            }})
-            .withFailureHandler(function(err){console.error(fn,err);results[i]=[];done++;if(done===4){
-              S.emps=results[0];S.reqs=results[1];S.adjs=results[2];
-              if(results[3]&&results[3].length>0)HOLIDAYS_2026=results[3];
-              set({});
-              startAutoRefresh(); // begin polling for external changes
-            }})
-            [fn]();
-        });
-      })
-      .withFailureHandler(function(err){
-        clearTimeout(bootTimer);
-        document.getElementById('root').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;color:#7a7874;gap:12px">'
-          +'<div style="font-size:16px;font-weight:500;color:#c0392b;">Error: '+err.message+'</div>'
-          +'<button onclick="location.reload()" style="padding:8px 20px;background:#2d6a22;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px">Retry</button>'
-          +'</div>';
-      })
-      .getSession();
-  } else {
-    const d=JSON.parse(localStorage.getItem('pto6')||'{}');
-    S.emps=EMPS;S.reqs=d.reqs||[];S.adjs=d.adjs||[];render();
+// Normalize raw Sheet values into clean JS types
+function cleanEmployee(row) {
+  return {
+    email:        String(row['email'] || '').trim(),
+    name:         String(row['name']  || '').trim(),
+    role:         String(row['role']  || 'Employee').trim(),
+    startDate:    formatDate(row['startDate']),
+    partTime:     toBoolean(row['partTime']),
+    carryover:    toNumber(row['carryover']),
+    managerEmail: String(row['managerEmail'] || '').trim()
+  };
+}
+
+// ── REQUESTS ─────────────────────────────────────────────────────
+function getAllRequests() {
+  var sheet = SS.getSheetByName('Requests');
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var rows    = sheet.getDataRange().getValues();
+  var headers = rows[0];
+  var result  = [];
+  for (var i = 1; i < rows.length; i++) {
+    var row = {};
+    for (var j = 0; j < headers.length; j++) {
+      row[headers[j]] = rows[i][j];
+    }
+    // Skip rows with no ID, no email, or zero hours (corrupt/empty rows)
+    if (row['id'] && row['employeeEmail'] && parseFloat(row['hours']) > 0) {
+      result.push({
+        id:            String(row['id']),
+        employeeEmail: String(row['employeeEmail'] || '').trim(),
+        employeeName:  String(row['employeeName']  || '').trim(),
+        type:          String(row['type']          || ''),
+        startDate:     formatDate(row['startDate']),
+        endDate:       formatDate(row['endDate']),
+        hours:         toNumber(row['hours']),
+        reason:        String(row['reason']        || ''),
+        status:        String(row['status']        || 'Pending'),
+        createdAt:     row['createdAt'] ? new Date(row['createdAt']).toISOString() : new Date().toISOString(),
+        managerEmail:  String(row['managerEmail']  || '').trim()
+      });
+    }
   }
-})();
+  return result;
+}
 
-// ── RENDER ───────────────────────────────────────────────────────
-function render(){
-  // Apply mobile class — triple detection for Apps Script iframe compatibility
-  (function(){
-    var touch='ontouchstart' in window||navigator.maxTouchPoints>0;
-    var narrow=(window.innerWidth||screen.width||9999)<769;
-    var phone=/iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent||'');
-    var isMobile=touch||narrow||phone;
-    ['html','body'].forEach(function(tag){
-      var el=document.getElementsByTagName(tag)[0];
-      if(el){
-        if(isMobile){el.setAttribute('data-mobile','1');}
-        else{el.removeAttribute('data-mobile');}
+function submitRequest(req) {
+  var session = getSession();
+  if (!session) throw new Error('Not authenticated');
+  var sheet = SS.getSheetByName('Requests');
+  var id    = Utilities.getUuid();
+  var now   = new Date().toISOString();
+  sheet.appendRow([
+    id,
+    session.email,
+    session.name,
+    req.type,
+    req.startDate,
+    req.endDate,
+    req.hours,
+    req.reason || '',
+    'Pending',
+    now,
+    req.managerEmail || ''
+  ]);
+  req.id            = id;
+  req.employeeEmail = session.email;
+  req.employeeName  = session.name;
+  req.status        = 'Pending';
+  req.createdAt     = now;
+  sendRequestNotification(req);
+  return { success: true, id: id };
+}
+
+function updateRequestStatus(id, status) {
+  var valid = ['Approved','Denied','Pending','Cancelled'];
+  if (valid.indexOf(status) === -1) throw new Error('Invalid status: ' + status);
+  var sheet = SS.getSheetByName('Requests');
+  var rows  = sheet.getDataRange().getValues();
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(id)) {
+      sheet.getRange(i + 1, 9).setValue(status); // column 9 = status
+      var headers = rows[0];
+      var req = {};
+      for (var j = 0; j < headers.length; j++) {
+        req[headers[j]] = rows[i][j];
       }
-    });
-  })();
-  const root=document.getElementById('root');
-  if(!S.sess){root.innerHTML=loginHTML();attachLoginEv();return;}
-  const emp=S.emps.find(e=>e.email===S.sess.email)||S.sess;
-  const isAdmin=S.sess.role==='Admin';
-  const mobileNav=renderMobileNav(emp,isAdmin);
-  root.innerHTML=`
-    ${S.toast?`<div class="toast" style="color:${S.toast.t==='s'?'var(--accent)':S.toast.t==='w'?'var(--warn)':'var(--danger)'}">${S.toast.m}</div>`:''}
-    <div class="app">${sidebar(emp,isAdmin)}<div class="main">${renderMobileHeader(emp,isAdmin)}${main(emp,isAdmin)}</div></div>
-    ${mobileNav}
-    ${S.modal?modalHTML():''}`;
-}
+      req['id']        = id;
+      req['status']    = status;
+      req['startDate'] = formatDate(req['startDate']);
+      req['endDate']   = formatDate(req['endDate']);
 
-// ── MOBILE HEADER & NAV ──────────────────────────────────────────
-function renderMobileHeader(emp,isAdmin){
-  const inAdmin=isAdmin&&S.mode==='admin';
-  return `<div class="mobile-header" style="background:var(--accent)">
-    ${av(emp.name||'',32)}
-    <div>
-      <div class="mobile-header-name">${emp.name||''}</div>
-      <div class="mobile-header-email">${S.sess.email}</div>
-    </div>
-    <div class="mobile-mode-badge">${inAdmin?'Admin':'Employee'}</div>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
-      ${isAdmin?`<button onclick="S.mode=S.mode==='admin'?'emp':'admin';S.mode==='admin'?set({apage:'home'}):set({etab:'mypto'})" style="background:rgba(255,255,255,0.15);border:none;border-radius:7px;padding:5px 8px;color:#fff;font-size:11px;cursor:pointer;font-family:'Inter',sans-serif">${inAdmin?'Employee':'Admin'}</button>`:''}
-      <button onclick="stopAutoRefresh();S.sess=null;render()" style="background:rgba(255,255,255,0.15);border:none;border-radius:7px;padding:5px 8px;color:#fff;font-size:11px;cursor:pointer;font-family:'Inter',sans-serif">Sign out</button>
-    </div>
-  </div>`;
-}
+      // Sync to Google Calendar
+      if (status === 'Approved') {
+        addPTOToCalendar(req);
+      } else if (status === 'Cancelled' || status === 'Denied') {
+        removePTOFromCalendar(id);
+      }
 
-function renderMobileNav(emp,isAdmin){
-  const inAdmin=isAdmin&&S.mode==='admin';
-  if(inAdmin){
-    // Admin bottom nav
-    const items=[
-      {k:'home',   l:'Overview', i:'home'},
-      {k:'requests',l:'Requests',i:'mail'},
-      {k:'employees',l:'Employees',i:'users'},
-      {k:'calendar', l:'Calendar', i:'cal'},
-    ];
-    return `<nav class="mobile-nav">
-      ${items.map(n=>`<button class="mobile-nav-item${S.apage===n.k?' on':''}" onclick="set({apage:'${n.k}'})">${svg(n.i)}<span>${n.l}</span></button>`).join('')}
-    </nav>`;
-  } else {
-    // Employee bottom nav
-    const items=[
-      {k:'mypto',   l:'My PTO',   i:'home'},
-      {k:'request', l:'Request',  i:'plus'},
-      {k:'history', l:'History',  i:'clock'},
-      {k:'calendar',l:'Calendar', i:'cal'},
-    ];
-    return `<nav class="mobile-nav">
-      ${items.map(n=>`<button class="mobile-nav-item${S.etab===n.k?' on':''}" onclick="${n.k==='calendar'?`S.cal=new Date();set({etab:'calendar'})`:`set({etab:'${n.k}'})`}">${svg(n.i)}<span>${n.l}</span></button>`).join('')}
-    </nav>`;
-  }
-}
-
-// ── SIDEBAR ──────────────────────────────────────────────────────
-function sidebar(emp,isAdmin){
-  const inAdmin=isAdmin&&S.mode==='admin';
-  const empNav=[{k:'mypto',l:'My PTO',i:'home'},{k:'request',l:'Request time off',i:'plus'},{k:'history',l:'My history',i:'clock'},{k:'calendar',l:'Team calendar',i:'cal'}];
-  const admNav=[{k:'home',l:'Overview',i:'home'},{k:'requests',l:'All Requests',i:'mail'},{k:'employees',l:'Employees',i:'users'},{k:'calendar',l:'Calendar',i:'cal'}];
-  const items=inAdmin?admNav:empNav;
-  const activeK=inAdmin?S.apage:S.etab;
-  return `<div class="sidebar${S.menuOpen?' open':''}">
-    <div class="sb-logo">UIC <span>PTO</span></div>
-    <!-- User info prominently at top -->
-    <div style="padding:10px 12px;border-bottom:1px solid var(--border);margin-bottom:4px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        ${av(emp.name||'',34)}
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${emp.name||''}</div>
-          <div style="font-size:10.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${S.sess.email}</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <span class="sb-pill ${inAdmin?'admin':'emp'}" style="margin:0;flex:1;text-align:center">${inAdmin?'Admin':'Employee'}</span>
-        <button class="btn-lo" style="width:auto;padding:5px 10px;font-size:11.5px" onclick="stopAutoRefresh();S.menuOpen=false;S.sess=null;render()">Sign out</button>
-      </div>
-    </div>
-    <div class="sb-nav">
-      ${isAdmin?`<div class="sb-sec">View as</div>
-        <div class="nav-i${!inAdmin?' on':''}" onclick="set({mode:'emp',etab:'mypto'})">${svg('home')} Employee</div>
-        <div class="nav-i${inAdmin?' on':''}" onclick="set({mode:'admin',apage:'home'})">${svg('settings')} Admin</div>
-        <div class="sb-sec" style="margin-top:8px">Menu</div>`:`<div class="sb-sec">Menu</div>`}
-      ${items.map(n=>`<div class="nav-i${activeK===n.k?' on':''}" onclick="${
-        inAdmin
-          ? (n.k==='calendar' ? `S.menuOpen=false;S.cal=new Date();set({apage:'calendar'})` : `S.menuOpen=false;set({apage:'${n.k}'})`)
-          : (n.k==='calendar' ? `S.menuOpen=false;S.cal=new Date();set({etab:'calendar'})` : `S.menuOpen=false;set({etab:'${n.k}'})`)
-      }">${svg(n.i)}${n.l}</div>`).join('')}
-    </div>
-  </div>`;
-}
-
-// ── MAIN ROUTER ──────────────────────────────────────────────────
-function main(emp,isAdmin){
-  if(isAdmin&&S.mode==='admin'){
-    if(S.apage==='home')return adminHome();
-    if(S.apage==='requests')return adminReqs();
-    if(S.apage==='employees')return adminEmps();
-    if(S.apage==='calendar')return`<div class="pg-title">Team Calendar</div><div class="pg-sub">Approved PTO + 2026 Company Holidays</div>`+calUI(true);
-  }
-  const tabs=[{k:'mypto',l:'My PTO'},{k:'request',l:'Request time off'},{k:'history',l:'My history'},{k:'calendar',l:'Team calendar'}];
-  return `<div class="emp-shell">
-    <div class="emp-tabs">${tabs.map(t=>`<div class="emp-tab${S.etab===t.k?' on':''}" onclick="${t.k==='calendar'?`S.cal=new Date();set({etab:'calendar'})`:`set({etab:'${t.k}'})`}">${t.l}</div>`).join('')}</div>
-    <div class="emp-body">${S.etab==='mypto'?tabMyPTO(emp):S.etab==='request'?tabRequest(emp):S.etab==='history'?tabHistory(emp):calUI(false)}</div>
-  </div>`;
-}
-
-// ── MY PTO TAB ───────────────────────────────────────────────────
-function tabMyPTO(emp){
-  const b=bal(emp,S.reqs,S.adjs),ac=accrued(emp),ph=pendHrs(emp,S.reqs);
-  const c=cap(emp),pct=Math.min(100,Math.round(ac/c*100));
-  const barColor=pct>=95?'#e53935':pct>=75?'#f57c00':'#2d6a22';
-  const p=periods(emp.startDate),r=rate(emp);
-  const today=localDateStr(new Date());
-  const upcoming=S.reqs.filter(r=>r.employeeEmail===emp.email&&r.status==='Approved'&&r.endDate>=today);
-  const pendCount=S.reqs.filter(r=>r.employeeEmail===emp.email&&r.status==='Pending').length;
-  const upcomingHols=HOLIDAYS_2026.filter(h=>h.date>=today).slice(0,3);
-
-  // Used hours broken down by leave type
-  const approvedReqs=S.reqs.filter(r=>r.employeeEmail===emp.email&&r.status==='Approved');
-  const usedPTO       =approvedReqs.filter(r=>r.type==='Paid Time Off').reduce((s,r)=>s+Number(r.hours),0);
-  const usedUnpaid    =approvedReqs.filter(r=>r.type==='Unpaid Time Off').reduce((s,r)=>s+Number(r.hours),0);
-  const usedBereavment=approvedReqs.filter(r=>r.type==='Bereavement').reduce((s,r)=>s+Number(r.hours),0);
-  const usedOther     =approvedReqs.filter(r=>r.type==='Other').reduce((s,r)=>s+Number(r.hours),0);
-
-  return `
-  <!-- Row 1: Balance summary + Rollover -->
-  <div class="stat-row" style="margin-bottom:12px">
-    <div class="stat-card"><div class="stat-lbl">Available</div><div class="stat-val g">${b.toFixed(2)}h</div><div class="stat-sub">${(b/8).toFixed(2)} days</div></div>
-    <div class="stat-card"><div class="stat-lbl">Accrued (${new Date().getFullYear()})</div><div class="stat-val">${(ac-Number(emp.carryover||0)).toFixed(2)}h</div><div class="stat-sub">${p} periods × ${r.toFixed(2)}h</div></div>
-    <div class="stat-card"><div class="stat-lbl">Rollover (prior year)</div><div class="stat-val" style="color:var(--info)">${Number(emp.carryover||0).toFixed(2)}h</div><div class="stat-sub">carried from last year</div></div>
-    <div class="stat-card"><div class="stat-lbl">Pending Approval</div><div class="stat-val">${ph.toFixed(2)}h</div><div class="stat-sub">${pendCount} request(s)</div></div>
-  </div>
-  <!-- Row 2: All 4 used categories in one row -->
-  <div class="stat-row" style="margin-bottom:20px">
-    <div class="stat-card" style="border-top:3px solid #c06000"><div class="stat-lbl">Used — Paid PTO</div><div class="stat-val o" style="font-size:20px">${usedPTO.toFixed(2)}h</div><div class="stat-sub">${(usedPTO/8).toFixed(2)} days · deducted</div></div>
-    <div class="stat-card" style="border-top:3px solid var(--info)"><div class="stat-lbl">Used — Unpaid</div><div class="stat-val" style="font-size:20px;color:var(--info)">${usedUnpaid.toFixed(2)}h</div><div class="stat-sub">${(usedUnpaid/8).toFixed(2)} days · record only</div></div>
-    <div class="stat-card" style="border-top:3px solid var(--muted)"><div class="stat-lbl">Used — Bereavement</div><div class="stat-val" style="font-size:20px;color:var(--muted)">${usedBereavment.toFixed(2)}h</div><div class="stat-sub">${(usedBereavment/8).toFixed(2)} days · record only</div></div>
-    <div class="stat-card" style="border-top:3px solid var(--muted)"><div class="stat-lbl">Used — Other</div><div class="stat-val" style="font-size:20px;color:var(--muted)">${usedOther.toFixed(2)}h</div><div class="stat-sub">${(usedOther/8).toFixed(2)} days · record only</div></div>
-  </div>
-
-  <div class="sbox">
-    <div class="stitle">Accrual Progress</div>
-    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)">${ac.toFixed(2)}h accrued (${p} periods × ${r.toFixed(2)}h)<span>${c}h cap</span></div>
-    <div class="prog-track"><div class="prog-bar" style="width:${pct}%;background:${barColor}"></div></div>
-    <div class="tags">
-      <span class="tag blue">+${r.toFixed(2)}h/period</span>
-      <span class="tag green">${allowance(emp)}h annual</span>
-      <span class="tag gray">Next: ${nextAccrual()}</span>
-      <span class="tag gray">${yrs(emp.startDate).toFixed(2)} yrs</span>
-    </div>
-  </div>
-
-  <div class="sbox">
-    <div class="stitle">Upcoming Approved Time Off</div>
-    ${upcoming.length===0
-      ?`<p style="font-size:13.5px;color:var(--muted);margin-bottom:14px">No upcoming PTO scheduled.</p>`
-      :`<table style="margin-bottom:14px"><thead><tr><th>Type</th><th>Start</th><th>End</th><th>Hours</th></tr></thead><tbody>
-        ${upcoming.map(r=>`<tr><td>${r.type}</td><td>${r.startDate}</td><td>${r.endDate}</td><td>${r.hours}h</td></tr>`).join('')}
-        </tbody></table>`}
-    <button class="btn-sub" style="font-size:13px;padding:7px 16px" onclick="set({etab:'request'})">+ Request time off</button>
-  </div>
-
-  <div class="sbox">
-    <div class="stitle">Upcoming Company Holidays</div>
-    <table><thead><tr><th>Date</th><th>Holiday</th></tr></thead><tbody>
-    ${upcomingHols.map(h=>`<tr>
-      <td>${new Date(h.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</td>
-      <td><span class="bdg pur">${h.name}</span></td>
-    </tr>`).join('')}
-    ${upcomingHols.length===0?`<tr><td colspan="2" style="color:var(--muted);font-size:13px">No more holidays this year.</td></tr>`:''}
-    </tbody></table>
-  </div>
-
-  ${(()=>{
-    const myAdjs=S.adjs.filter(a=>a.email===emp.email);
-    if(myAdjs.length===0)return '';
-    return `<div class="sbox">
-      <div class="stitle">Balance Adjustments</div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Manual adjustments made to your balance by admin.</p>
-      <table><thead><tr><th>Date</th><th>Adjustment</th><th>Note</th><th>By</th></tr></thead><tbody>
-      ${myAdjs.map(a=>`<tr>
-        <td style="font-size:12px">${new Date(a.at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
-        <td><span class="bdg ${Number(a.delta)>0?'g':'r'}">${Number(a.delta)>0?'+':''}${Number(a.delta).toFixed(2)}h</span></td>
-        <td style="font-size:13px">${a.note||'—'}</td>
-        <td style="font-size:12px;color:var(--muted)">${a.by||'Admin'}</td>
-      </tr>`).join('')}
-      </tbody></table>
-    </div>`;
-  })()}
-
-  ${renderAccrualSchedule(emp)}`;
-}
-
-// ── ACCRUAL SCHEDULE ──────────────────────────────────────────────
-// Shows every future period with projected running balance
-// Also used by the request form to show balance on a selected date
-function getFutureAccrualSchedule(emp){
-  const empRate=rate(emp);
-  const empCap=cap(emp);
-  const today=localDateStr(new Date());
-  const curYear=new Date().getFullYear();
-  const schedule=[];
-
-  // Start from current balance
-  let runningBal=bal(emp,S.reqs,S.adjs);
-
-  // Get all future period dates in current year
-  for(let mo=0;mo<12;mo++){
-    const p15=localDateStr(new Date(curYear,mo,15));
-    const pe=localDateStr(new Date(curYear,mo+1,0));
-    if(p15>=today)schedule.push({date:p15,label:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][mo]+' 15'});
-    if(pe>=today)schedule.push({date:pe,label:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][mo]+' '+new Date(curYear,mo+1,0).getDate()});
-  }
-
-  // Build projected balances — each period adds accrual (no PTO deductions, just showing potential)
-  return schedule.map(p=>{
-    runningBal=Math.min(runningBal+empRate,empCap);
-    return {...p,balance:runningBal,rate:empRate};
-  });
-}
-
-function renderAccrualSchedule(emp){
-  const schedule=getFutureAccrualSchedule(emp);
-  if(schedule.length===0)return '';
-  const curBal=bal(emp,S.reqs,S.adjs);
-  const empRate=rate(emp);
-  const empCap=cap(emp);
-  const today=localDateStr(new Date());
-
-  return `<div class="sbox">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="stitle" style="margin:0">Future Accrual Schedule</div>
-      <span style="font-size:11.5px;color:var(--muted)">Current balance: <strong style="color:var(--accent)">${curBal.toFixed(2)}h</strong> · +${empRate.toFixed(2)}h per period</span>
-    </div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Projected balance if no additional PTO is taken. Select a date on the Request form to see your exact available hours.</p>
-    <table>
-      <thead><tr>
-        <th>Period Date</th>
-        <th>Accrual</th>
-        <th>Projected Balance</th>
-        <th>Status</th>
-      </tr></thead>
-      <tbody>
-      ${schedule.map((p,i)=>{
-        const atCap=p.balance>=empCap;
-        const isNext=i===0;
-        return`<tr style="${isNext?'background:var(--accent-light)':''}">
-          <td style="font-weight:${isNext?'600':'400'}">${p.label} ${new Date().getFullYear()} <span style="font-size:11px;color:var(--muted)">(${p.date})</span></td>
-          <td style="color:var(--accent)">+${p.rate.toFixed(2)}h</td>
-          <td><strong style="color:${atCap?'var(--warn)':'var(--accent)'}">${p.balance.toFixed(2)}h</strong></td>
-          <td>${isNext?`<span class="bdg g">Next accrual</span>`:''}${atCap?`<span class="bdg y" style="margin-left:4px">At cap</span>`:''}</td>
-        </tr>`;
-      }).join('')}
-      </tbody>
-    </table>
-    <p style="font-size:11px;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-      * Projections assume no additional PTO is approved. Actual balance may differ based on approved requests.
-    </p>
-  </div>`;
-}
-
-// ── REQUEST TAB ───────────────────────────────────────────────────
-function tabRequest(emp){
-  const b=bal(emp,S.reqs,S.adjs),cl=conseq(emp);
-  const mgr=S.emps.find(e=>e.email===emp.managerEmail);
-  const mgrName=mgr?mgr.name:emp.managerEmail;
-  const today=localDateStr(new Date());
-  // warn if selected range hits a holiday (checked on submit)
-  return `<div style="max-width:680px">
-    <div class="stitle" style="margin-bottom:14px">New Time-Off Request</div>
-    <div class="info-banner">Your request will be sent to <strong>${mgrName}</strong> for approval.</div>
-    <div id="req-err"></div>
-    <div id="hol-warn"></div>
-    <div class="f2">
-      <div class="fgrp"><label class="flbl">Start date</label><input class="finp" type="date" id="rstart" value="${today}" oninput="checkHols()"/></div>
-      <div class="fgrp"><label class="flbl">End date</label><input class="finp" type="date" id="rend" value="${today}" oninput="checkHols()"/></div>
-    </div>
-    <div id="proj-info"></div>
-    <div class="fgrp"><label class="flbl">Type of leave</label>
-      <select class="fsel" id="rtype"><option>Paid Time Off</option><option>Unpaid Time Off</option><option>Bereavement</option><option>Other</option></select>
-    </div>
-    <div class="fgrp">
-      <label class="flbl">Hours requested (min 4h) <span id="dhint" style="color:var(--muted);font-weight:400"></span></label>
-      <input class="finp" type="number" min="4" step="0.5" placeholder="e.g. 16" id="rhours" oninput="dHint(this.value)"/>
-    </div>
-
-    <div class="fgrp"><label class="flbl">Notes (reason)</label><input class="finp" type="text" id="rreason" placeholder="Vacation, appointment, personal..."/></div>
-    <button class="btn-sub" onclick="doSubmit()">Submit for approval</button>
-    <div class="limits-box">
-      <div class="stitle" style="margin-bottom:12px">Your Limits</div>
-      <div class="lim-grid">
-        <div>
-          <div class="lim-lbl">Available balance</div>
-          <div class="lim-val" style="color:${b<8?'var(--danger)':'var(--text)'}">${b.toFixed(2)}h (${(b/8).toFixed(2)} days)</div>
-          ${pendHrs(emp,S.reqs)>0?`<div style="font-size:11px;color:var(--warn);margin-top:3px">${pendHrs(emp,S.reqs).toFixed(2)}h pending approval</div>`:''}
-        </div>
-        <div><div class="lim-lbl">Max consecutive</div><div class="lim-val">${cl}h (${cl/8} days)</div></div>
-        <div><div class="lim-lbl">Min request</div><div class="lim-val">4h</div></div>
-        <div><div class="lim-lbl">Negative balance</div><div class="lim-val">Not allowed</div></div>
-      </div>
-
-    </div>
-    <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px">
-      <div class="stitle" style="margin-bottom:10px">2026 Company Holidays (paid — do not count against PTO)</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">
-        ${HOLIDAYS_2026.map(h=>`<span class="bdg pur" style="font-size:11px">${h.date.slice(5)} ${h.name}</span>`).join('')}
-      </div>
-    </div>
-  </div>`;
-}
-
-// Holiday warning on date change
-window.checkHols=function(){
-  const s=document.getElementById('rstart')?.value;
-  const e=document.getElementById('rend')?.value;
-  const holEl=document.getElementById('hol-warn');
-  if(!holEl||!s||!e)return;
-
-  // Holiday warning
-  const hits=HOLIDAYS_2026.filter(h=>h.date>=s&&h.date<=e);
-  if(hits.length>0){
-    holEl.innerHTML=`<div class="alert info">Your date range includes ${hits.length} company holiday(s): ${hits.map(h=>`<strong>${h.name}</strong>`).join(', ')}. Holidays are paid and do not count against your PTO balance.</div>`;
-  } else {
-    holEl.innerHTML='';
-  }
-
-  // Show projected balance on start date
-  const projEl=document.getElementById('proj-info');
-  if(!projEl||!S.sess)return;
-  const emp=S.emps.find(x=>x.email===S.sess.email);
-  if(!emp)return;
-  const today=localDateStr(new Date());
-  const curBal=bal(emp,S.reqs,S.adjs);
-
-  if(s<=today){
-    // Date is today or past — show current balance
-    projEl.innerHTML=`<div class="alert info" style="border-color:#b8ddb5;background:#eaf5e6;color:#2d6a22">
-      <strong>Available balance: ${curBal.toFixed(2)}h</strong> as of today.
-    </div>`;
-  } else {
-    // Future date — find projected balance from accrual schedule
-    const schedule=getFutureAccrualSchedule(emp);
-    // Find the last period BEFORE the start date
-    let projBal=curBal;
-    const periodsBeforeStart=schedule.filter(p=>p.date<s);
-    if(periodsBeforeStart.length>0){
-      projBal=periodsBeforeStart[periodsBeforeStart.length-1].balance;
+      sendStatusNotification(req);
+      logAudit('status_update', 'SYSTEM', id + ' -> ' + status);
+      return { success: true };
     }
-    const periodsCount=periodsBeforeStart.length;
-    const startFmt=new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-    const nextPeriods=schedule.filter(p=>p.date>=today&&p.date<s);
-    const periodList=nextPeriods.map(p=>`${p.label} (+${p.rate.toFixed(2)}h)`).join(', ');
-
-    projEl.innerHTML=`<div style="background:#eaf5e6;border:2px solid #2d6a22;border-radius:10px;padding:14px 18px;margin:8px 0">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:${periodsCount>0?'8':'0'}px">
-        <div style="width:36px;height:36px;border-radius:50%;background:#2d6a22;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
-        </div>
-        <div>
-          <div style="font-size:15px;font-weight:600;color:#1e5c1a">Projected balance on ${startFmt}</div>
-          <div style="font-size:20px;font-weight:700;color:#2d6a22;letter-spacing:-0.5px">${projBal.toFixed(2)}h available</div>
-        </div>
-      </div>
-      ${periodsCount>0?`<div style="font-size:12.5px;color:#5a8a55;background:#d5eed0;border-radius:6px;padding:7px 10px">
-        Includes ${periodsCount} upcoming accrual${periodsCount>1?'s':''}: ${periodList}
-      </div>`:''}
-    </div>`;
   }
-};
-
-// ── HISTORY TAB ──────────────────────────────────────────────────
-function tabHistory(emp){
-  const my=S.reqs.filter(r=>r.employeeEmail===emp.email).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  const approved=my.filter(r=>r.status==='Approved');
-  const usedPTO     =approved.filter(r=>r.type==='Paid Time Off').reduce((s,r)=>s+Number(r.hours),0);
-  const usedUnpaid  =approved.filter(r=>r.type==='Unpaid Time Off').reduce((s,r)=>s+Number(r.hours),0);
-  const usedBereavm =approved.filter(r=>r.type==='Bereavement').reduce((s,r)=>s+Number(r.hours),0);
-  const usedOther   =approved.filter(r=>r.type==='Other').reduce((s,r)=>s+Number(r.hours),0);
-  const pendH=my.filter(r=>r.status==='Pending'&&r.type==='Paid Time Off').reduce((s,r)=>s+Number(r.hours),0);
-  return `<div class="sbox">
-    <div class="stitle">My Request History</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
-        <div style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Paid Time Off</div>
-        <div style="font-size:18px;font-weight:600;color:#c06000">${usedPTO.toFixed(2)}h</div>
-        <div style="font-size:11px;color:var(--muted)">deducted from balance</div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
-        <div style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Unpaid Time Off</div>
-        <div style="font-size:18px;font-weight:600;color:var(--info)">${usedUnpaid.toFixed(2)}h</div>
-        <div style="font-size:11px;color:var(--muted)">record only</div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
-        <div style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Bereavement</div>
-        <div style="font-size:18px;font-weight:600;color:var(--muted)">${usedBereavm.toFixed(2)}h</div>
-        <div style="font-size:11px;color:var(--muted)">record only</div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
-        <div style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Other</div>
-        <div style="font-size:18px;font-weight:600;color:var(--muted)">${usedOther.toFixed(2)}h</div>
-        <div style="font-size:11px;color:var(--muted)">record only</div>
-      </div>
-    </div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">${my.length} total requests · ${pendH.toFixed(2)}h PTO pending approval</p>
-    ${my.length===0?`<p style="font-size:13.5px;color:var(--muted)">No requests yet.</p>`:
-    `<table><thead><tr><th>Type</th><th>Start</th><th>End</th><th>Hrs</th><th>Status</th><th>Submitted</th><th></th></tr></thead><tbody>
-    ${my.map(r=>`<tr>
-      <td><span class="chip">${r.type}</span></td>
-      <td>${r.startDate}</td><td>${r.endDate}</td>
-      <td>${r.hours}h</td>
-      <td>${bdg(r.status)}</td>
-      <td style="color:var(--muted);font-size:12px">${new Date(r.createdAt).toLocaleDateString()}</td>
-      <td>${r.status==='Pending'
-        ?`<button class="btn sm" style="color:var(--danger);border-color:#f5c6c6;font-size:12px" onclick="empCancel('${r.id}')">Cancel</button>`
-        :''}
-      </td>
-    </tr>`).join('')}
-    </tbody></table>`}
-  </div>`;
+  throw new Error('Request not found: ' + id);
 }
 
-// ── CALENDAR UI ───────────────────────────────────────────────────
-function calUI(showNames){
-  const m=S.cal,y=m.getFullYear(),mo=m.getMonth();
-  const first=new Date(y,mo,1).getDay(),days=new Date(y,mo+1,0).getDate();
-  const td=new Date(),approved=S.reqs.filter(r=>r.status==='Approved');
-  let cells='';
-  for(let i=0;i<first;i++)cells+=`<div class="cal-cell other"></div>`;
-  for(let d=1;d<=days;d++){
-    const ds=`${y}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const evts=approved.filter(r=>r.startDate<=ds&&r.endDate>=ds);
-    const hol=getHoliday(ds);
-    const isT=td.getFullYear()===y&&td.getMonth()===mo&&td.getDate()===d;
-    const hasPTO=evts.length>0;
-    cells+=`<div class="cal-cell${isT?' today-cell':''}${hasPTO?' has-pto':''}${hol?' has-holiday':''}">
-      ${isT?`<span class="cal-num-today">${d}</span>`:`<span>${d}</span>`}
-      ${hol?`<div class="hol-dot" title="${hol.name}">${hol.name.length>14?hol.name.slice(0,13)+'…':hol.name}</div>`:''}
-      ${evts.map(e=>{
-        const typeShort={'Paid Time Off':'PTO','Unpaid Time Off':'Unpaid','Bereavement':'Bereav.','Other':'Other'}[e.type]||e.type;
-        const firstName=e.employeeName.split(' ')[0];
-        // Always show name + type (both employee and admin views)
-        const label=`${firstName} · ${typeShort}`;
-        const dotColor={'Paid Time Off':'#2d6a22','Unpaid Time Off':'#1a4d7c','Bereavement':'#7a7874','Other':'#b5651d'}[e.type]||'#2d6a22';
-        return `<div class="pto-dot" title="${e.employeeName} — ${e.type}" style="background:${dotColor}">${label}</div>`;
-      }).join('')}
-    </div>`;
-  }
-
-  // Holidays this month
-  const thisMonthHols=HOLIDAYS_2026.filter(h=>{
-    const hd=new Date(h.date+'T12:00:00');
-    return hd.getFullYear()===y&&hd.getMonth()===mo;
-  });
-
-  // Use local date (not UTC) to avoid timezone causing wrong day
-  const todayLocal=localDateStr(td);
-  const whosOut=approved.filter(r=>r.startDate<=todayLocal&&r.endDate>=todayLocal);
-  const todayHol=getHoliday(todayLocal);
-
-  return `<div class="cal-wrap">
-    <div class="cal-nav-row">
-      <div class="cal-ttl">${m.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</div>
-      <button class="btn-cal" onclick="S.cal=new Date(${y},${mo-1});render()">←</button>
-      <button class="btn-cal" onclick="S.cal=new Date();render()">Today</button>
-      <button class="btn-cal" onclick="S.cal=new Date(${y},${mo+1});render()">→</button>
-    </div>
-    <div class="cal-grid">
-      ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-dow">${d}</div>`).join('')}
-      ${cells}
-    </div>
-    <div class="cal-legend">
-      <span class="l-dot" style="background:var(--accent-light);border-color:#b8ddb5"></span>PTO
-      <span class="l-dot" style="background:var(--holiday-light);border-color:#f5c6c6"></span>Holiday
-      <span class="l-dot" style="background:var(--today-bg);border-color:var(--today-bd)"></span>Today
-    </div>
-  </div>
-
-  ${thisMonthHols.length>0?`<div class="cal-wrap" style="margin-top:0">
-    <div class="stitle">Holidays This Month</div>
-    <table><thead><tr><th>Date</th><th>Holiday</th></tr></thead><tbody>
-    ${thisMonthHols.map(h=>`<tr>
-      <td style="font-size:13px">${new Date(h.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</td>
-      <td><span class="bdg pur">${h.name}</span></td>
-    </tr>`).join('')}
-    </tbody></table>
-  </div>`:''}
-
-  <div class="cal-wrap" style="margin-top:0">
-    <div class="stitle">Who's Off Today${todayHol?` · <span class="bdg pur" style="font-size:11px">${todayHol.name}</span>`:''}</div>
-    ${todayHol?`<div style="font-size:13px;color:var(--holiday);font-weight:500;margin-bottom:8px">🎉 Today is a company holiday — ${todayHol.name}</div>`:''}
-    ${whosOut.length===0?`<p style="font-size:13.5px;color:var(--muted)">No one is out today.</p>`:
-    `<table><thead><tr><th>Employee</th><th>Type</th><th>Until</th></tr></thead><tbody>
-    ${whosOut.map(r=>`<tr><td>${r.employeeName}</td><td>${r.type}</td><td>${r.endDate}</td></tr>`).join('')}
-    </tbody></table>`}
-  </div>`;
-}
-
-// ── ADMIN HOME ────────────────────────────────────────────────────
-function mobileWrap(html){
-  // Wraps admin content with mobile-friendly padding
-  return `<div style="padding:0">${html}</div>`;
-}
-function adminHome(){
-  const pending=S.reqs.filter(r=>r.status==='Pending');
-  const approved=S.reqs.filter(r=>r.status==='Approved');
-  const totalUsed=approved.filter(r=>r.type!=='Unpaid Time Off').reduce((s,r)=>s+Number(r.hours),0);
-  const totalBal=S.emps.reduce((s,e)=>s+bal(e,S.reqs,S.adjs),0);
-  const today=localDateStr(new Date());
-  const nextHol=HOLIDAYS_2026.find(h=>h.date>=today);
-  return `<div class="pg-title">Admin Overview</div><div class="pg-sub">Company-wide PTO snapshot</div>
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
-    <div class="stat-card"><div class="stat-lbl">Pending</div><div class="stat-val ${pending.length>0?'o':'g'}">${pending.length}</div><div class="stat-sub">awaiting approval</div></div>
-    <div class="stat-card"><div class="stat-lbl">Approved</div><div class="stat-val">${approved.length}</div><div class="stat-sub">requests total</div></div>
-    <div class="stat-card"><div class="stat-lbl">Hours Used</div><div class="stat-val">${totalUsed.toFixed(0)}h</div><div class="stat-sub">company-wide</div></div>
-    <div class="stat-card"><div class="stat-lbl">Balance Pool</div><div class="stat-val">${totalBal.toFixed(0)}h</div><div class="stat-sub">remaining total</div></div>
-  </div>
-  ${nextHol?`<div class="card" style="border-left:4px solid var(--holiday)">
-    <div class="card-title" style="color:var(--holiday)">Next Company Holiday</div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <span class="bdg pur" style="font-size:13px;padding:5px 14px">${nextHol.name}</span>
-      <span style="font-size:13px;color:var(--muted)">${new Date(nextHol.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</span>
-    </div>
-  </div>`:''}
-  <div class="card">
-    <div class="card-title">${pending.length>0?`Pending Requests (${pending.length})`:'All Caught Up'}</div>
-    ${pending.length===0?`<div class="empty">No pending requests!</div>`:
-    `<table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Hrs</th><th>Actions</th></tr></thead><tbody>
-    ${pending.map(r=>`<tr>
-      <td><div style="display:flex;align-items:center;gap:7px">${av(r.employeeName,24)}<span>${r.employeeName}</span></div></td>
-      <td><span class="chip">${r.type}</span></td>
-      <td style="font-size:12px">${r.startDate} → ${r.endDate}</td><td>${r.hours}h</td>
-      <td><div style="display:flex;gap:4px">
-        <button class="btn ok sm" onclick="doStat('${r.id}','Approved')">✓ Approve</button>
-        <button class="btn no sm" onclick="doStat('${r.id}','Denied')">✗ Deny</button>
-        <button class="btn sm" style="color:var(--danger);border-color:#f5c6c6" onclick="doStat('${r.id}','Cancelled')">Cancel</button>
-      </div></td>
-    </tr>`).join('')}
-    </tbody></table>`}
-  </div>`;
-}
-
-// ── ADMIN REQUESTS ────────────────────────────────────────────────
-function adminReqs(){
-  const reqs=S.reqs.filter(r=>S.aflt==='All'?true:r.status===S.aflt).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  return `<div class="pg-title">All Requests</div><div class="pg-sub"></div>
-  <div class="filter-tabs">${['Pending','Approved','Denied','Cancelled','All'].map(f=>`<button class="ftab${S.aflt===f?' on':''}" onclick="S.aflt='${f}';render()">${f}</button>`).join('')}</div>
-  <div class="card">${reqs.length===0?`<div class="empty">No ${S.aflt.toLowerCase()} requests</div>`:
-  `<table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Hrs</th><th>Status</th><th>Actions</th></tr></thead><tbody>
-  ${reqs.map(r=>`<tr>
-    <td><div style="display:flex;align-items:center;gap:7px">${av(r.employeeName,24)}<div><div style="font-size:13px;font-weight:500">${r.employeeName}</div><div style="font-size:11px;color:var(--muted)">${r.employeeEmail}</div></div></div></td>
-    <td><span class="chip">${r.type}</span></td>
-    <td style="font-size:12px">${r.startDate}<br>${r.endDate}</td><td>${r.hours}h</td>
-    <td>${bdg(r.status)}</td>
-    <td><div style="display:flex;gap:4px;flex-wrap:wrap">
-      ${r.status==='Pending'?`
-        <button class="btn ok sm" onclick="doStat('${r.id}','Approved')" title="Approve">✓ Approve</button>
-        <button class="btn no sm" onclick="doStat('${r.id}','Denied')" title="Deny">✗ Deny</button>
-        <button class="btn sm" style="color:var(--danger);border-color:#f5c6c6" onclick="doStat('${r.id}','Cancelled')" title="Cancel">Cancel</button>
-      `:r.status==='Approved'?`
-        <button class="btn sm" style="color:var(--danger);border-color:#f5c6c6" onclick="doStat('${r.id}','Cancelled')" title="Cancel approved request">Cancel</button>
-        <button class="btn sm" onclick="doStat('${r.id}','Pending')">Reset</button>
-      `:`
-        <button class="btn sm" onclick="doStat('${r.id}','Pending')">Reset</button>
-      `}
-    </div></td>
-  </tr>`).join('')}
-  </tbody></table>`}</div>`;
-}
-
-// ── ADMIN EMPLOYEES ───────────────────────────────────────────────
-function empUsage(email){
-  const approved=S.reqs.filter(r=>r.employeeEmail===email&&r.status==='Approved');
-  const pto      =approved.filter(r=>r.type==='Paid Time Off').reduce((s,r)=>s+Number(r.hours),0);
-  const unpaid   =approved.filter(r=>r.type==='Unpaid Time Off').reduce((s,r)=>s+Number(r.hours),0);
-  const bereav   =approved.filter(r=>r.type==='Bereavement').reduce((s,r)=>s+Number(r.hours),0);
-  const other    =approved.filter(r=>r.type==='Other').reduce((s,r)=>s+Number(r.hours),0);
-  const pending  =S.reqs.filter(r=>r.employeeEmail===email&&r.status==='Pending').reduce((s,r)=>s+Number(r.hours),0);
-  return {pto,unpaid,bereav,other,pending,total:pto+unpaid+bereav+other};
-}
-
-function adminEmps(){
-  const expanded=S.expandedEmp||null;
-  return `<div class="pg-title">Employees</div><div class="pg-sub">${S.emps.length} team members · Click a row to see leave details</div>
-  <div class="card" style="padding:0;overflow:hidden">
-  <table><thead><tr>
-    <th style="padding:10px 14px">Name</th>
-    <th>Start</th><th>Yrs</th>
-    <th>Allowance</th>
-    <th>Balance</th>
-    <th>Rollover</th>
-    <th>PTO Used</th>
-    <th>Unpaid</th>
-    <th>Bereavement</th>
-    <th>Other</th>
-    <th>Pending</th>
-    <th>Actions</th>
-  </tr></thead><tbody>
-  ${S.emps.map(e=>{
-    const b=bal(e,S.reqs,S.adjs);
-    const u=empUsage(e.email);
-    const mgrName=S.emps.find(x=>x.email===e.managerEmail)?.name||e.managerEmail;
-    const isExpanded=expanded===e.email;
-    const empReqs=S.reqs.filter(r=>r.employeeEmail===e.email&&r.status==='Approved').sort((a,b)=>new Date(b.startDate)-new Date(a.startDate));
-    return`
-    <tr style="cursor:pointer;${isExpanded?'background:var(--accent-light);':''}" onclick="S.expandedEmp=S.expandedEmp==='${e.email}'?null:'${e.email}';render()">
-      <td style="padding:10px 14px">
-        <div style="display:flex;align-items:center;gap:8px">
-          ${av(e.name,28)}
-          <div>
-            <div style="font-size:13px;font-weight:500">${e.name}</div>
-            <div style="font-size:11px;color:var(--muted)">${e.email}</div>
-          </div>
-          <span style="margin-left:4px;color:var(--muted);font-size:11px">${isExpanded?'▲':'▼'}</span>
-        </div>
-      </td>
-      <td style="font-size:12px">${e.startDate}</td>
-      <td>${yrs(e.startDate)}</td>
-      <td style="font-size:12px">${allowance(e)}h<br><span style="color:var(--muted);font-size:11px">cap ${cap(e)}h</span></td>
-      <td><strong style="color:${b<20?'var(--danger)':'var(--accent)'}">${b.toFixed(2)}h</strong></td>
-      <td style="font-size:12px;color:var(--info)">${Number(e.carryover||0)}h</td>
-      <td><span style="color:#c06000;font-weight:500">${u.pto.toFixed(2)}h</span></td>
-      <td style="font-size:12px;color:var(--info)">${u.unpaid.toFixed(2)}h</td>
-      <td style="font-size:12px;color:var(--muted)">${u.bereav.toFixed(2)}h</td>
-      <td style="font-size:12px;color:var(--muted)">${u.other.toFixed(2)}h</td>
-      <td style="font-size:12px;color:var(--warn)">${u.pending.toFixed(2)}h</td>
-      <td onclick="event.stopPropagation()">
-        <div style="display:flex;gap:3px">
-          <button class="btn sm" onclick="S.modal='edit';S.mdata='${e.email}';render()">Edit</button>
-          <button class="btn sm" onclick="S.modal='adj';S.mdata='${e.email}';render()">Adj.</button>
-        </div>
-      </td>
-    </tr>
-    ${isExpanded?`
-    <tr><td colspan="12" style="padding:0;background:var(--surface2);border-bottom:2px solid var(--accent-light)">
-      <div style="padding:14px 20px">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px">
-          ${e.name}'s Approved Leave History · Manager: ${mgrName}
-        </div>
-        ${empReqs.length===0
-          ?`<p style="font-size:13px;color:var(--muted)">No approved requests.</p>`
-          :`<table style="font-size:12.5px">
-            <thead><tr>
-              <th>Type</th><th>Start</th><th>End</th><th>Hours</th><th>Reason</th>
-            </tr></thead>
-            <tbody>
-            ${empReqs.map(r=>`<tr>
-              <td>${bdg(r.type==='Paid Time Off'?'PTO':r.type==='Unpaid Time Off'?'Unpaid':r.type,
-                r.type==='Paid Time Off'?'y':r.type==='Unpaid Time Off'?'b':'gr')}</td>
-              <td>${r.startDate}</td>
-              <td>${r.endDate}</td>
-              <td><strong>${r.hours}h</strong></td>
-              <td style="color:var(--muted)">${r.reason||'—'}</td>
-            </tr>`).join('')}
-            </tbody>
-          </table>
-          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:20px;font-size:12px">
-            <span>PTO: <strong style="color:#c06000">${u.pto.toFixed(2)}h</strong></span>
-            <span>Unpaid: <strong style="color:var(--info)">${u.unpaid.toFixed(2)}h</strong></span>
-            <span>Bereavement: <strong>${u.bereav.toFixed(2)}h</strong></span>
-            <span>Other: <strong>${u.other.toFixed(2)}h</strong></span>
-            <span style="margin-left:auto">Total leave taken: <strong>${u.total.toFixed(2)}h</strong></span>
-          </div>`}
-      </div>
-    </td></tr>`:''}`;
-  }).join('')}
-  </tbody></table></div>`;
-}
-
-// ── MODALS ────────────────────────────────────────────────────────
-function modalHTML(){
-  const close=`S.modal=null;render()`;
-  if(S.modal==='edit'){
-    const e=S.emps.find(x=>x.email===S.mdata);if(!e)return'';
-    return`<div class="overlay" onclick="if(event.target===this){${close}}"><div class="modal">
-      <div class="modal-hdr"><h3>Edit — ${e.name}</h3><button class="modal-x" onclick="${close}">×</button></div>
-      <div class="f2">
-        <div class="fgrp"><label class="flbl">Name</label><input class="finp" id="en" value="${e.name}"/></div>
-        <div class="fgrp"><label class="flbl">Role</label><select class="fsel" id="er"><option${e.role==='Employee'?' selected':''}>Employee</option><option${e.role==='Admin'?' selected':''}>Admin</option></select></div>
-        <div class="fgrp"><label class="flbl">Start Date</label><input class="finp" type="date" id="es" value="${e.startDate}"/></div>
-        <div class="fgrp"><label class="flbl">Carryover Hrs</label><input class="finp" type="number" id="ec" value="${e.carryover||0}"/></div>
-        <div class="fgrp"><label class="flbl">Manager Email</label><input class="finp" id="em" value="${e.managerEmail}"/></div>
-        <div class="fgrp"><label class="flbl">Part-Time</label><select class="fsel" id="ep"><option value="no"${!e.partTime?' selected':''}>No</option><option value="yes"${e.partTime?' selected':''}>Yes</option></select></div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:8px"><button class="btn pri" onclick="saveEdit('${e.email}')">Save</button><button class="btn" onclick="${close}">Cancel</button></div>
-    </div></div>`;
-  }
-  if(S.modal==='adj'){
-    const e=S.emps.find(x=>x.email===S.mdata);if(!e)return'';
-    const b=bal(e,S.reqs,S.adjs);
-    return`<div class="overlay" onclick="if(event.target===this){${close}}"><div class="modal">
-      <div class="modal-hdr"><h3>Adjust Balance — ${e.name}</h3><button class="modal-x" onclick="${close}">×</button></div>
-      <div class="alert info">Current balance: <strong>${b.toFixed(2)} hrs</strong></div>
-      <div class="fgrp"><label class="flbl">Adjustment (+ add, − deduct)</label><input class="finp" type="number" id="ad" placeholder="e.g. 8 or -4"/></div>
-      <div class="fgrp"><label class="flbl">Note / Reason</label><input class="finp" id="an" placeholder="Reason..."/></div>
-      <div style="display:flex;gap:8px;margin-top:8px"><button class="btn pri" onclick="saveAdj('${e.email}')">Apply</button><button class="btn" onclick="${close}">Cancel</button></div>
-    </div></div>`;
-  }
-  return'';
-}
-
-// ── LOGIN ─────────────────────────────────────────────────────────
-function loginHTML(){
-  return`<div class="login-wrap"><div class="login-card">
-    <div class="login-logo">UIC PTO</div>
-    <div class="login-sub">Time Off Management · 2026</div>
-    <div class="alert info" style="margin-top:16px">Signing you in with your Google Workspace account...</div>
-    <div style="display:flex;align-items:center;justify-content:center;padding:20px;color:var(--muted);font-size:13px"><div class="spinner"></div>Please wait...</div>
-  </div></div>`;
-}
-function attachLoginEv(){
-  // No-op: boot sequence above handles Apps Script login automatically
-}
-
-// ── ACTIONS ───────────────────────────────────────────────────────
-
-window.empCancel=async function(id){
-  if(!confirm('Are you sure you want to cancel this request?'))return;
-  // Update UI immediately
-  S.reqs=S.reqs.map(r=>r.id===id?{...r,status:'Cancelled'}:r);
-  set({etab:'history'});
-  toast('Request cancelled.','w');
-  if(USE_APPS_SCRIPT){
-    // Sync to Sheet then refresh so history shows correct status
-    gsCall('updateRequestStatus',id,'Cancelled').then(function(){
-      return gsCall('getAllRequests');
-    }).then(function(freshReqs){
-      if(freshReqs)S.reqs=freshReqs;
-      render();
-    }).catch(function(e){
-      console.error('Cancel sync error:',e);
-    });
-  } else {
-    persist();
-  }
-};
-window.dHint=function(v){
-  const h=parseFloat(v)||0,el=document.getElementById('dhint');
-  if(el&&h>0)el.textContent=`≈ ${(h/8).toFixed(2)} days`;
-};
-window.doSubmit=async function(){
-  const emp=S.emps.find(e=>e.email===S.sess.email);
-  const type=document.getElementById('rtype').value;
-  const start=document.getElementById('rstart').value;
-  const end=document.getElementById('rend').value;
-  const hours=parseFloat(document.getElementById('rhours').value)||0;
-  const reason=document.getElementById('rreason').value;
-  const errEl=document.getElementById('req-err');
-  if(!start||!end){errEl.innerHTML=`<div class="alert err">Please select dates.</div>`;return;}
-  if(new Date(start)>new Date(end)){errEl.innerHTML=`<div class="alert err">End date must be on or after start date.</div>`;return;}
-  if(hours<4){errEl.innerHTML=`<div class="alert err">Minimum request is 4 hours.</div>`;return;}
-  if(type==='Paid Time Off'){
-    const b=bal(emp,S.reqs,S.adjs);
-    if(hours>b){
-      errEl.innerHTML=`<div class="alert err">Insufficient balance. You have ${b.toFixed(2)}h available today.</div>`;
-      return;
+// ── BALANCES / ADJUSTMENTS ───────────────────────────────────────
+function getBalanceAdjustments() {
+  var sheet = SS.getSheetByName('Balances');
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var rows    = sheet.getDataRange().getValues();
+  var headers = rows[0];
+  var result  = [];
+  for (var i = 1; i < rows.length; i++) {
+    var row = {};
+    for (var j = 0; j < headers.length; j++) {
+      row[headers[j]] = rows[i][j];
     }
-    if(hours>conseq(emp)){errEl.innerHTML=`<div class="alert err">Exceeds consecutive limit of ${conseq(emp)}h.</div>`;return;}
+    // Only return MANUAL admin adjustments - skip SYSTEM accrual rows.
+    // Accrual is calculated client-side based on hire date and periods.
+    var by = String(row['by'] || '').trim();
+    if (row['email'] && by !== 'SYSTEM') {
+      result.push({
+        id:    String(i),
+        email: String(row['email'] || '').trim(),
+        delta: toNumber(row['delta']),
+        note:  String(row['note'] || ''),
+        by:    by,
+        at:    row['at'] ? new Date(row['at']).toISOString() : new Date().toISOString()
+      });
+    }
   }
-  const req={id:Date.now().toString(),employeeEmail:S.sess.email,employeeName:S.sess.name,type,startDate:start,endDate:end,hours,reason,status:'Pending',createdAt:new Date().toISOString(),managerEmail:emp.managerEmail};
-  if(USE_APPS_SCRIPT){
-    // Add to local state immediately so it shows in history right away
-    S.reqs=[...S.reqs,req];
-    set({etab:'history'});
-    toast('Request submitted! Your manager will be notified.','s');
-    // Save to Sheet and refresh from Sheet to get the server-assigned ID
-    gsCall('submitRequest',req).then(function(){
-      return gsCall('getAllRequests');
-    }).then(function(freshReqs){
-      if(freshReqs)S.reqs=freshReqs;
-      render();
-    }).catch(function(e){
-      console.error('Submit error:',e);
-      toast('Saved locally but failed to sync. Please refresh.','w');
-    });
-  } else {
-    S.reqs=[...S.reqs,req];
-    persist();
-    toast('Request submitted! Your manager will be notified.','s');
-    set({etab:'history'});
-  }
-};
-window.doStat=async function(id,status){
-  // Update UI immediately
-  S.reqs=S.reqs.map(r=>r.id===id?{...r,status}:r);
-  toast(`Request ${status.toLowerCase()}.`,status==='Approved'?'s':'w');
-  render();
-  if(USE_APPS_SCRIPT){
-    // Sync to Sheet then refresh requests so both admin and employee see updated status
-    gsCall('updateRequestStatus',id,status).then(function(){
-      return gsCall('getAllRequests');
-    }).then(function(freshReqs){
-      if(freshReqs)S.reqs=freshReqs;
-      render();
-    }).catch(function(e){
-      console.error('Status sync error:',e);
-    });
-  } else {
-    persist();
-  }
-};
-window.saveEdit=async function(email){
-  const d={email,name:document.getElementById('en').value,role:document.getElementById('er').value,startDate:document.getElementById('es').value,carryover:Number(document.getElementById('ec').value),managerEmail:document.getElementById('em').value,partTime:document.getElementById('ep').value==='yes'};
-  if(USE_APPS_SCRIPT){await gsCall('updateEmployee',d);}
-  else{S.emps=S.emps.map(e=>e.email===email?{...e,...d}:e);}
-  toast('Employee updated.','s');set({modal:null});
-};
-window.saveAdj=async function(email){
-  const delta=parseFloat(document.getElementById('ad').value);
-  const note=document.getElementById('an').value;
-  if(isNaN(delta)||delta===0){toast('Enter a non-zero amount.','w');return;}
-  const a={id:Date.now().toString(),email,delta,note,by:S.sess.email,at:new Date().toISOString()};
-  if(USE_APPS_SCRIPT){
-    await gsCall('adjustBalance',email,delta,note);
-    // Reload adjustments from Sheet so record shows immediately
-    const fresh=await gsCall('getBalanceAdjustments');
-    S.adjs=fresh||[];
-  } else {
-    S.adjs=[...S.adjs,a];persist();
-  }
-  toast('Balance adjusted. Record saved to Balances sheet.','s');
-  set({modal:null});
-};
-function gsCall(fn,...args){return new Promise((res,rej)=>google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args));}
-function toast(m,t){S.toast={m,t};render();setTimeout(()=>{S.toast=null;render();},3500);}
+  return result;
+}
 
-// ── AUTO-REFRESH ──────────────────────────────────────────────────
-// Polls the Sheet every 30 seconds so changes made outside the app
-// (e.g. manager clicks Approve/Deny in email) show up automatically.
-var _refreshTimer=null;
-function startAutoRefresh(){
-  if(!USE_APPS_SCRIPT)return;
-  stopAutoRefresh();
-  _refreshTimer=setInterval(function(){
-    if(!S.sess)return; // not logged in, skip
-    gsCall('getAllRequests').then(function(freshReqs){
-      if(!freshReqs)return;
-      // Check if anything actually changed before re-rendering
-      const oldJSON=JSON.stringify(S.reqs.map(r=>r.id+'_'+r.status).sort());
-      const newJSON=JSON.stringify(freshReqs.map(r=>r.id+'_'+r.status).sort());
-      if(oldJSON!==newJSON){
-        S.reqs=freshReqs;
-        render();
-        // Show subtle notification if a pending request was approved/denied
-        const changed=freshReqs.filter(function(nr){
-          const old=S.reqs.find(function(or){return or.id===nr.id;});
-          return old&&old.status==='Pending'&&nr.status!=='Pending';
-        });
-        if(changed.length>0){
-          toast('A request status has been updated.','s');
+function adjustBalance(email, delta, note) {
+  var session = getSession();
+  if (!session || session.role !== 'Admin') throw new Error('Unauthorized');
+  SS.getSheetByName('Balances').appendRow([
+    email, new Date().toISOString(), delta, note, session.email
+  ]);
+  logAudit('balance_adjust', session.email, email + ': ' + delta + ' - ' + note);
+  return { success: true };
+}
+
+// ── EMPLOYEE EDIT ────────────────────────────────────────────────
+function updateEmployee(data) {
+  var session = getSession();
+  if (!session || session.role !== 'Admin') throw new Error('Unauthorized');
+  var sheet   = SS.getSheetByName('Employees');
+  var rows    = sheet.getDataRange().getValues();
+  var headers = rows[0];
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]).trim() === String(data.email).trim()) {
+      for (var j = 0; j < headers.length; j++) {
+        var key = headers[j];
+        if (data[key] !== undefined) {
+          sheet.getRange(i + 1, j + 1).setValue(data[key]);
         }
       }
-    }).catch(function(e){
-      console.log('Auto-refresh error (non-fatal):',e);
-    });
-  },30000); // every 30 seconds
+      logAudit('employee_update', session.email, 'Updated ' + data.email);
+      return { success: true };
+    }
+  }
+  throw new Error('Employee not found: ' + data.email);
 }
-function stopAutoRefresh(){
-  if(_refreshTimer){clearInterval(_refreshTimer);_refreshTimer=null;}
+
+// ── AUDIT LOG ─────────────────────────────────────────────────────
+function logAudit(action, by, detail) {
+  var sheet = SS.getSheetByName('AuditLog');
+  if (sheet) sheet.appendRow([new Date().toISOString(), action, by, detail]);
+}
+
+// ── SEMI-MONTHLY ACCRUAL TRIGGER ─────────────────────────────────
+// Run setupTrigger() once to install. Runs daily at 8am,
+// but only processes on the 15th and last day of each month.
+function runSemiMonthlyAccrual() {
+  var today   = new Date();
+  var day     = today.getDate();
+  var lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  // Accrual runs the day AFTER the period closes:
+  // Period closes on 15th → run on 16th
+  // Period closes on last day → run on 1st of next month
+  var isAfter15th = (day === 16);
+  var isFirstOfMonth = (day === 1);
+  if (!isAfter15th && !isFirstOfMonth) return;
+
+  var employees = getAllEmployees();
+  var sheet     = SS.getSheetByName('Balances');
+  employees.forEach(function(emp) {
+    var yrs    = getYearsService(emp.startDate);
+    // Part-time gets same allowance as full-time - only consecutive limit differs
+    var annual = yrs >= 5 ? 160 : 120;
+    var accrualPerPeriod = annual / 24;
+    if (accrualPerPeriod > 0) {
+      sheet.appendRow([
+        emp.email,
+        today.toISOString(),
+        accrualPerPeriod,
+        'Semi-monthly accrual',
+        'SYSTEM'
+      ]);
+    }
+  });
+  logAudit('accrual_run', 'SYSTEM', 'Ran for ' + employees.length + ' employees on ' + today.toISOString());
+}
+
+function setupTrigger() {
+  // Delete existing triggers first to avoid duplicates
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'runSemiMonthlyAccrual') {
+      ScriptApp.deleteTrigger(t);
+    }
+  });
+  ScriptApp.newTrigger('runSemiMonthlyAccrual')
+    .timeBased()
+    .everyDays(1)
+    .atHour(8)
+    .create();
+  Logger.log('Trigger created: runSemiMonthlyAccrual runs daily at 8am');
+}
+
+// ── TOKEN SECURITY ────────────────────────────────────────────────
+function makeToken(requestId) {
+  var secret = PropertiesService.getScriptProperties().getProperty('TOKEN_SECRET');
+  if (!secret) return 'no-secret';
+  var bytes = Utilities.computeHmacSha256Signature(requestId, secret);
+  return bytes.map(function(b) {
+    return ('0' + (b & 0xFF).toString(16)).slice(-2);
+  }).join('').slice(0, 16);
+}
+
+function validateToken(requestId, token) {
+  return makeToken(requestId) === token;
+}
+
+function setupSecret() {
+  PropertiesService.getScriptProperties().setProperty('TOKEN_SECRET', Utilities.getUuid());
+  Logger.log('Secret created successfully');
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────
-function av(name,size){
-  if(!name)return'';
-  const ini=name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
-  const cols=[['#e8f4e6','#2d6a22'],['#eaf1fb','#1a4d7c'],['#fef8f0','#b5651d'],['#fdf0ef','#c0392b'],['#f0efe9','#5a5955']];
-  const c=cols[name.charCodeAt(0)%cols.length];
-  return`<span class="av" style="width:${size}px;height:${size}px;min-width:${size}px;background:${c[0]};color:${c[1]};font-size:${Math.round(size*.36)}px">${ini}</span>`;
+// Convert Sheet date (Date object or string) to YYYY-MM-DD string
+function formatDate(val) {
+  if (!val) return '';
+  if (val instanceof Date) {
+    var y = val.getFullYear();
+    var m = String(val.getMonth() + 1).padStart(2, '0');
+    var d = String(val.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + d;
+  }
+  // Already a string like "2015-04-16" or "2015-04-16T..."
+  return String(val).slice(0, 10);
 }
-function bdg(text,cls){
-  const map={Approved:'g',Denied:'r',Pending:'y',Cancelled:'gr',Admin:'g','Part-time':'b','Full-time':'gr'};
-  return`<span class="bdg ${cls||map[text]||'gr'}">${text}</span>`;
+
+function toBoolean(val) {
+  if (val === true || val === 'TRUE' || val === 'true' || val === 'Yes' || val === 'yes') return true;
+  return false;
 }
-function svg(n){
-  const i={
-    home:`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 7l6-5 6 5v7H2z"/><rect x="6" y="10" width="4" height="4"/></svg>`,
-    clock:`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>`,
-    cal:`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="12" rx="2"/><path d="M1 7h14M5 1v4M11 1v4"/></svg>`,
-    users:`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2-5 5-5h0c3 0 5 2 5 5"/><circle cx="12" cy="5" r="2"/><path d="M14 13c0-2-1-3-2-3"/></svg>`,
-    mail:`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M1 4l7 5 7-5"/></svg>`,
-    plus:`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10"/></svg>`,
-    settings:`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M13 3l-1.4 1.4M4.4 11.6L3 13"/></svg>`,
-  };
-  return i[n]||'';
+
+function toNumber(val) {
+  var n = parseFloat(val);
+  return isNaN(n) ? 0 : n;
 }
-</script>
-</body>
-</html>
+
+function getYearsService(startDate) {
+  var s = new Date(startDate);
+  var n = new Date();
+  var y = n.getFullYear() - s.getFullYear();
+  if (n < new Date(n.getFullYear(), s.getMonth(), s.getDate())) y--;
+  return Math.max(0, y);
+}
+
+// ── GOOGLE CALENDAR INTEGRATION ──────────────────────────────────
+var COMPANY_CAL_ID = 'c_9afb084439b154efd07562acf496b2f05d3601a9e459cf6aaa09453470ab591d@group.calendar.google.com';
+
+function getCompanyCal() {
+  return CalendarApp.getCalendarById(COMPANY_CAL_ID);
+}
+
+// Called when a request is Approved - creates ALL-DAY event on company calendar
+// All-day events show as color bars, not timed "9am" events
+function addPTOToCalendar(req) {
+  try {
+    var cal = getCompanyCal();
+    if (!cal) { Logger.log('Calendar not found: ' + COMPANY_CAL_ID); return; }
+
+    var title = req.employeeName + '  ' + req.type;
+    var desc  = 'Employee: ' + req.employeeName
+              + ' | Type: '  + req.type
+              + ' | Hours: ' + req.hours + 'h'
+              + ' | Reason: ' + (req.reason || 'Not specified')
+              + ' | Approved by PTO system';
+
+    // Parse dates as local all-day dates
+    var startParts = req.startDate.split('-');
+    var endParts   = req.endDate.split('-');
+    var startDate  = new Date(
+      parseInt(startParts[0]),
+      parseInt(startParts[1]) - 1,
+      parseInt(startParts[2])
+    );
+    // All-day end date in Google Calendar is exclusive (add 1 day)
+    var endDate = new Date(
+      parseInt(endParts[0]),
+      parseInt(endParts[1]) - 1,
+      parseInt(endParts[2]) + 1
+    );
+
+    // Check if event already exists to avoid duplicates
+    var checkEnd = new Date(endDate.getTime() - 1); // back to actual end day
+    var existing = cal.getEvents(startDate, checkEnd);
+    for (var i = 0; i < existing.length; i++) {
+      if (existing[i].getTitle() === title) {
+        Logger.log('Event already exists, skipping: ' + title);
+        return;
+      }
+    }
+
+    var event = cal.createAllDayEvent(title, startDate, endDate, {
+      description: desc
+    });
+    event.setColor(CalendarApp.EventColor.GREEN); // Green for PTO
+    storeCalEventId(req.id, event.getId());
+    Logger.log('All-day calendar event created: ' + title);
+  } catch(e) {
+    Logger.log('Calendar error: ' + e.message);
+  }
+}
+
+// Called when a request is Cancelled or Denied - removes event from calendar
+function removePTOFromCalendar(requestId) {
+  try {
+    var eventId = getCalEventId(requestId);
+    if (!eventId) return;
+    var cal = getCompanyCal();
+    if (!cal) return;
+    var event = cal.getEventById(eventId);
+    if (event) {
+      event.deleteEvent();
+      Logger.log('Calendar event deleted for request: ' + requestId);
+    }
+    clearCalEventId(requestId);
+  } catch(e) {
+    Logger.log('Calendar remove error: ' + e.message);
+  }
+}
+
+// Add all holidays from the Holidays sheet to the company calendar
+// Run this once manually each year after updating the Holidays tab
+function syncHolidaysToCalendar() {
+  var cal      = getCompanyCal();
+  if (!cal) { Logger.log('Calendar not found!'); return; }
+  var holidays = getHolidays();
+  var added = 0, skipped = 0;
+
+  holidays.forEach(function(h) {
+    var date  = new Date(h.date + 'T12:00:00');
+    var title = '[Holiday] ' + h.name + ' (UICU Holiday)';
+    // Check if already exists
+    var dayStart = new Date(h.date + 'T00:00:00');
+    var dayEnd   = new Date(h.date + 'T23:59:59');
+    var existing = cal.getEvents(dayStart, dayEnd);
+    var found = false;
+    for (var i = 0; i < existing.length; i++) {
+      if (existing[i].getTitle() === title) { found = true; break; }
+    }
+    if (!found) {
+      var hEvent = cal.createAllDayEvent(title, date, { description: 'UICU Paid Company Holiday' });
+      hEvent.setColor(CalendarApp.EventColor.RED);
+      added++;
+    } else {
+      skipped++;
+    }
+  });
+  Logger.log('Holidays synced: ' + added + ' added, ' + skipped + ' already existed');
+}
+
+// ── CALENDAR EVENT ID STORAGE ─────────────────────────────────────
+// Stores request->calendarEventId mapping in Script Properties
+function storeCalEventId(requestId, eventId) {
+  PropertiesService.getScriptProperties().setProperty('cal_' + requestId, eventId);
+}
+function getCalEventId(requestId) {
+  return PropertiesService.getScriptProperties().getProperty('cal_' + requestId);
+}
+function clearCalEventId(requestId) {
+  PropertiesService.getScriptProperties().deleteProperty('cal_' + requestId);
+}
+
+// One-time setup: save calendar ID (already hardcoded above but kept for reference)
+function saveCalendarId() {
+  PropertiesService.getScriptProperties()
+    .setProperty('COMPANY_CALENDAR_ID', COMPANY_CAL_ID);
+  Logger.log('Calendar ID saved: ' + COMPANY_CAL_ID);
+}
+
+// ── HOLIDAYS ─────────────────────────────────────────────────────
+// Reads from the Holidays sheet tab - update that tab each year.
+function getHolidays() {
+  var sheet = SS.getSheetByName('Holidays');
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var rows    = sheet.getDataRange().getValues();
+  var headers = rows[0];
+  var result  = [];
+  for (var i = 1; i < rows.length; i++) {
+    var row = {};
+    for (var j = 0; j < headers.length; j++) {
+      row[headers[j]] = rows[i][j];
+    }
+    if (row['date'] && row['name']) {
+      result.push({
+        date: formatDate(row['date']),   // handles Date obj or string
+        name: String(row['name']).trim()
+      });
+    }
+  }
+  return result;
+}
+
+// ── ACCRUAL SHEETS GENERATOR ─────────────────────────────────────
+// Run generateAccrualSheets() once to create a tab per employee
+// showing their full 2026 accrual & PTO history like Fabian's spreadsheet.
+// Re-run anytime to refresh all sheets with latest data.
+function generateAccrualSheets() {
+  var employees = getAllEmployees();
+  var requests  = getAllRequests();
+  var adjs      = getBalanceAdjustments();
+  var ss        = SpreadsheetApp.getActiveSpreadsheet();
+  var tz        = Session.getScriptTimeZone();
+  var today     = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  var year      = new Date().getFullYear();
+
+  var months    = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  employees.forEach(function(emp) {
+    // ── Tab name ──────────────────────────────────────────────────
+    var tabName = emp.name.replace(/\s+/g, '_').slice(0, 25) + '_Accrual';
+
+    // Delete and recreate tab
+    var existing = ss.getSheetByName(tabName);
+    if (existing) ss.deleteSheet(existing);
+    var sheet = ss.insertSheet(tabName);
+
+    // ── Employee info header ──────────────────────────────────────
+    sheet.getRange(1, 1, 1, 9).merge();
+    sheet.getRange(1, 1).setValue('UICU PTO Accrual Statement 2026 - ' + emp.name);
+    sheet.getRange(1, 1).setFontSize(13).setFontWeight('bold').setBackground('#2d6a22').setFontColor('#ffffff');
+
+    // Info rows
+    var yrs     = getYearsService(emp.startDate);
+    var annual  = yrs >= 5 ? 160 : 120;
+    var empRate = annual / 24;
+    var empCap  = annual * 1.5;
+    var carry   = parseFloat(emp.carryover) || 0;
+
+    var infoData = [
+      ['Email:', emp.email, '', 'Start Date:', emp.startDate, '', 'Years:', yrs, ''],
+      ['Annual Allowance:', annual + 'h', '', 'Accrual Rate:', empRate.toFixed(4) + 'h/period', '', 'Cap:', empCap + 'h', ''],
+      ['Carryover:', carry + 'h', '', 'Manager:', emp.managerEmail, '', 'Part-Time:', emp.partTime ? 'Yes' : 'No', ''],
+    ];
+    sheet.getRange(2, 1, 3, 9).setValues(infoData);
+    sheet.getRange(2, 1, 3, 9).setBackground('#f5f4f1');
+    sheet.getRange(2, 1).setFontWeight('bold');
+    sheet.getRange(3, 1).setFontWeight('bold');
+    sheet.getRange(4, 1).setFontWeight('bold');
+
+    // Blank row
+    sheet.getRange(5, 1, 1, 9).setBackground('#ffffff');
+
+    // ── Column headers ────────────────────────────────────────────
+    var headers = ['Period', 'Date', 'Opening Balance', 'Accrual (+)', 'PTO Deducted', 'Other Leave', 'Closing Balance', 'Leave Type', 'Request Dates'];
+    sheet.getRange(6, 1, 1, 9).setValues([headers]);
+    sheet.getRange(6, 1, 1, 9)
+      .setBackground('#1a4d7c')
+      .setFontColor('#ffffff')
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center');
+
+    // ── Build all period dates for the year ───────────────────────
+    var periods = [];
+    for (var mo = 0; mo < 12; mo++) {
+      var p15Date  = new Date(year, mo, 15);
+      var peDate   = new Date(year, mo + 1, 0);
+      var p15Str   = Utilities.formatDate(p15Date, tz, 'yyyy-MM-dd');
+      var peStr    = Utilities.formatDate(peDate,  tz, 'yyyy-MM-dd');
+      var p15Label = months[mo] + ' 15';
+      var peLabel  = months[mo] + ' ' + peDate.getDate();
+      periods.push({ label: p15Label, date: p15Str });
+      periods.push({ label: peLabel,  date: peStr  });
+    }
+
+    // ── Get this employee's approved PTO requests ─────────────────
+    var empPTO = requests.filter(function(r) {
+      return r.employeeEmail === emp.email && r.status === 'Approved';
+    }).sort(function(a, b) { return a.startDate.localeCompare(b.startDate); });
+
+    // Split a PTO request at period boundaries (mirrors Index.html logic)
+    function weekdaysInclusive(startStr, endStr) {
+      var count = 0;
+      var d     = new Date(startStr + 'T12:00:00');
+      var end   = new Date(endStr   + 'T12:00:00');
+      while (d <= end) {
+        var dow = d.getDay();
+        if (dow !== 0 && dow !== 6) count++;
+        d.setDate(d.getDate() + 1);
+      }
+      return count;
+    }
+
+    function nextDayStr(dateStr) {
+      var d = new Date(dateStr + 'T12:00:00');
+      d.setDate(d.getDate() + 1);
+      return Utilities.formatDate(d, tz, 'yyyy-MM-dd');
+    }
+
+    function splitAtBoundaries(startStr, endStr, totalHours, periodStrs) {
+      var totalDays = weekdaysInclusive(startStr, endStr);
+      if (totalDays === 0) return [{ endDate: endStr, hours: totalHours, startDate: startStr }];
+      var hPerDay   = totalHours / totalDays;
+      var segments  = [];
+      var segStart  = startStr;
+      var remaining = totalHours;
+      for (var i = 0; i < periodStrs.length; i++) {
+        var boundary = periodStrs[i];
+        if (boundary >= segStart && boundary < endStr) {
+          var daysInSeg   = weekdaysInclusive(segStart, boundary);
+          var hoursInSeg  = Math.round(daysInSeg * hPerDay * 100) / 100;
+          if (hoursInSeg > 0) {
+            segments.push({ endDate: boundary, hours: hoursInSeg, startDate: segStart });
+            remaining = Math.round((remaining - hoursInSeg) * 100) / 100;
+          }
+          segStart = nextDayStr(boundary);
+        }
+      }
+      if (remaining > 0) segments.push({ endDate: endStr, hours: remaining, startDate: segStart });
+      return segments;
+    }
+
+    // Build all PTO segments split at period boundaries
+    var periodStrs = periods.map(function(p) { return p.date; });
+    var allSegments = [];
+    empPTO.forEach(function(pto) {
+      var segs = splitAtBoundaries(pto.startDate, pto.endDate, parseFloat(pto.hours), periodStrs);
+      segs.forEach(function(seg) {
+        allSegments.push({
+          endDate:   seg.endDate,
+          startDate: seg.startDate,
+          hours:     seg.hours,
+          type:      pto.type,
+          reqDates:  pto.startDate + ' to ' + pto.endDate,
+          origHours: pto.hours
+        });
+      });
+    });
+    allSegments.sort(function(a, b) { return a.endDate.localeCompare(b.endDate); });
+
+    // Admin adjustments
+    var empAdj = adjs.filter(function(a) { return a.email === emp.email; })
+                     .reduce(function(s, a) { return s + parseFloat(a.delta); }, 0);
+
+    // ── Simulate period by period ─────────────────────────────────
+    var balance  = Math.min(carry + empAdj, empCap);
+    var segIdx   = 0;
+    var dataRows = [];
+
+    // Opening carryover row
+    dataRows.push([
+      'Carryover',
+      (year - 1) + '-12-31',
+      '',
+      '',
+      '',
+      '',
+      balance.toFixed(2),
+      '',
+      'Prior year carryover: ' + carry + 'h' + (empAdj !== 0 ? ' | Adjustment: ' + empAdj + 'h' : '')
+    ]);
+
+    periods.forEach(function(period) {
+      var pdStr      = period.date;
+      var opening    = balance;
+      var ptoDeduct  = 0;
+      var otherLeave = 0;
+      var leaveTypes = [];
+      var reqDates   = [];
+
+      // Deduct segments ending on or before this period (DEDUCTIBLE = Paid Time Off)
+      while (segIdx < allSegments.length && allSegments[segIdx].endDate <= pdStr) {
+        var seg = allSegments[segIdx];
+        if (seg.type === 'Paid Time Off') {
+          ptoDeduct += seg.hours;
+        } else {
+          otherLeave += seg.hours;
+        }
+        if (leaveTypes.indexOf(seg.type) === -1) leaveTypes.push(seg.type);
+        if (reqDates.indexOf(seg.reqDates) === -1) reqDates.push(seg.reqDates);
+        segIdx++;
+      }
+
+      // Deduct PTO from balance
+      balance = Math.max(0, balance - ptoDeduct);
+
+      // Always add accrual — for past periods it's actual, for future it's projected
+      var isFuture = pdStr >= today;
+      var beforeAccrual = balance;
+      balance = Math.min(balance + empRate, empCap);
+      var accrualAdded = balance - beforeAccrual;
+
+      var closing = balance;
+
+      dataRows.push([
+        period.label,
+        pdStr,
+        opening.toFixed(2),
+        accrualAdded.toFixed(2),
+        ptoDeduct  > 0 ? ptoDeduct.toFixed(2)   : '',
+        otherLeave > 0 ? otherLeave.toFixed(2)   : '',
+        closing.toFixed(2),
+        leaveTypes.length > 0 ? leaveTypes.join(', ') : (isFuture ? 'Projected' : ''),
+        reqDates.join('; ')
+      ]);
+    });
+
+    // Write data rows
+    var startRow = 7;
+    sheet.getRange(startRow, 1, dataRows.length, 9).setValues(dataRows);
+
+    // ── Formatting ────────────────────────────────────────────────
+    // Carryover row
+    sheet.getRange(startRow, 1, 1, 9).setBackground('#e8f4e6').setFontWeight('bold');
+
+    // Color period rows
+    for (var r = 1; r < dataRows.length; r++) {
+      var rowNum    = startRow + r;
+      var rowData   = dataRows[r];
+      var dateStr   = rowData[1];
+      var hasPTO    = rowData[4] !== '';
+      var hasOther  = rowData[5] !== '';
+      var isFutRow  = dateStr >= today;
+      var isAtCap   = parseFloat(String(rowData[6]).replace('~','')) >= empCap;
+
+      if (isFutRow) {
+        sheet.getRange(rowNum, 1, 1, 9).setBackground('#f0f8ff').setFontColor('#7a7874');
+        sheet.getRange(rowNum, 7).setFontColor('#1a4d7c');
+      } else if (hasPTO) {
+        sheet.getRange(rowNum, 1, 1, 9).setBackground('#fff3e0');
+        sheet.getRange(rowNum, 4).setFontColor('#2d6a22').setFontWeight('bold');
+        sheet.getRange(rowNum, 5).setFontColor('#c0392b').setFontWeight('bold');
+        sheet.getRange(rowNum, 7).setFontColor('#c06000').setFontWeight('bold');
+      } else if (hasOther) {
+        sheet.getRange(rowNum, 1, 1, 9).setBackground('#f5eaf8');
+      } else if (r % 2 === 0) {
+        sheet.getRange(rowNum, 1, 1, 9).setBackground('#f9f9f9');
+      }
+
+      if (isAtCap && !isFutRow) {
+        sheet.getRange(rowNum, 7).setBackground('#fff3cd').setFontColor('#856404');
+      }
+    }
+
+    // Summary row at bottom
+    var summaryRow = startRow + dataRows.length;
+    var totalPTO   = allSegments.filter(function(s) { return s.type === 'Paid Time Off'; })
+                                .reduce(function(s, seg) { return s + seg.hours; }, 0);
+    var totalOther = allSegments.filter(function(s) { return s.type !== 'Paid Time Off'; })
+                                .reduce(function(s, seg) { return s + seg.hours; }, 0);
+
+    sheet.getRange(summaryRow, 1, 1, 9).setValues([[
+      'SUMMARY', '', 'Carryover: ' + carry + 'h',
+      'Total accrued: ' + (periods.filter(function(p){return p.date<today;}).length * empRate).toFixed(2) + 'h',
+      'PTO used: ' + totalPTO.toFixed(2) + 'h',
+      'Other: ' + totalOther.toFixed(2) + 'h',
+      'Current balance: ' + balance.toFixed(2) + 'h',
+      '', ''
+    ]]);
+    sheet.getRange(summaryRow, 1, 1, 9)
+      .setBackground('#2d6a22').setFontColor('#ffffff')
+      .setFontWeight('bold');
+
+    // Legend row
+    var legendRow = summaryRow + 1;
+    sheet.getRange(legendRow, 1, 1, 9).setValues([['LEGEND: White/Gray = Normal period | Orange = PTO used | Purple = Other leave | Blue = Future (projected) | Yellow = At cap', '', '', '', '', '', '', '', '']]);
+    sheet.getRange(legendRow, 1, 1, 9).merge().setBackground('#f5f4f1').setFontColor('#7a7874').setFontSize(10);
+
+    // ── Column widths & freeze ────────────────────────────────────
+    sheet.setColumnWidth(1, 90);   // Period
+    sheet.setColumnWidth(2, 100);  // Date
+    sheet.setColumnWidth(3, 110);  // Opening
+    sheet.setColumnWidth(4, 120);  // Accrual
+    sheet.setColumnWidth(5, 120);  // PTO Deducted
+    sheet.setColumnWidth(6, 100);  // Other Leave
+    sheet.setColumnWidth(7, 120);  // Closing
+    sheet.setColumnWidth(8, 140);  // Leave Type
+    sheet.setColumnWidth(9, 200);  // Request Dates
+
+    sheet.setFrozenRows(6);
+    // Note: no column freeze — conflicts with merged header cell in row 1
+
+    // Center-align numeric columns
+    var totalDataRows = dataRows.length + 1;
+    sheet.getRange(startRow, 2, totalDataRows, 6).setHorizontalAlignment('center');
+
+    // Format numeric columns as numbers (2 decimal places) to prevent misinterpretation
+    var numFormat = '0.00';
+    sheet.getRange(startRow, 3, totalDataRows, 5).setNumberFormat(numFormat); // Opening, Accrual, PTO, Other, Closing
+    // Opening balance col
+    sheet.getRange(startRow, 3, totalDataRows, 1).setNumberFormat(numFormat);
+    // Accrual col
+    sheet.getRange(startRow, 4, totalDataRows, 1).setNumberFormat(numFormat);
+    // PTO deducted col - positive number shown in red to indicate deduction
+    sheet.getRange(startRow, 5, totalDataRows, 1).setNumberFormat('0.00');
+    // Closing balance col
+    sheet.getRange(startRow, 7, totalDataRows, 1).setNumberFormat(numFormat);
+
+    Logger.log('Generated sheet for: ' + emp.name + ' (' + tabName + ')');
+  });
+
+  Logger.log('Done! Generated ' + employees.length + ' accrual sheets.');
+  SpreadsheetApp.getUi().alert('Done! Generated accrual sheets for ' + employees.length + ' employees. Check the new tabs at the bottom of your spreadsheet.');
+}
+
+// ── CALENDAR DEBUG ───────────────────────────────────────────────
+// Run this manually to test if calendar connection works
+function debugCalendar() {
+  try {
+    var cal = getCompanyCal();
+    if (!cal) {
+      Logger.log('ERROR: Calendar not found! Check the calendar ID and sharing permissions.');
+      Logger.log('Calendar ID: ' + COMPANY_CAL_ID);
+      return;
+    }
+    Logger.log('Calendar found: ' + cal.getName());
+    Logger.log('Calendar ID: ' + cal.getId());
+
+    // Try creating a test event
+    var now   = new Date();
+    var end   = new Date(now.getTime() + 60*60*1000);
+    var event = cal.createEvent('PTO SYNC TEST - DELETE ME', now, end, {
+      description: 'Test event from PTO system - please delete'
+    });
+    Logger.log('Test event created successfully! ID: ' + event.getId());
+    Logger.log('If you see this event on your calendar, the sync is working.');
+
+    // Clean it up immediately
+    event.deleteEvent();
+    Logger.log('Test event deleted. Calendar sync is working correctly!');
+  } catch(e) {
+    Logger.log('Calendar ERROR: ' + e.message);
+    Logger.log('Most likely cause: Calendar API not enabled or calendar not shared with this script.');
+    Logger.log('Fix: Apps Script -> Services -> Add Google Calendar API');
+  }
+}
+
+// Run this to manually sync an existing approved request to calendar
+// Usage: set the requestId variable to the id from your Requests sheet
+function manualSyncRequest() {
+  var requestId = 'REPLACE_WITH_REQUEST_ID'; // e.g. '2026-001'
+  var sheet = SS.getSheetByName('Requests');
+  var rows  = sheet.getDataRange().getValues();
+  var headers = rows[0];
+  for (var i = 1; i < rows.length; i++) {
+    var row = {};
+    for (var j = 0; j < headers.length; j++) row[headers[j]] = rows[i][j];
+    if (String(row['id']) === requestId) {
+      row['startDate'] = formatDate(row['startDate']);
+      row['endDate']   = formatDate(row['endDate']);
+      addPTOToCalendar(row);
+      Logger.log('Synced request ' + requestId + ' to calendar');
+      return;
+    }
+  }
+  Logger.log('Request not found: ' + requestId);
+}
+
+// Sync ALL approved requests to calendar (run once to backfill)
+function syncAllApprovedToCalendar() {
+  var sheet = SS.getSheetByName('Requests');
+  if (!sheet) { Logger.log('No Requests sheet!'); return; }
+  var rows    = sheet.getDataRange().getValues();
+  var headers = rows[0];
+  var synced = 0, skipped = 0;
+  for (var i = 1; i < rows.length; i++) {
+    var row = {};
+    for (var j = 0; j < headers.length; j++) row[headers[j]] = rows[i][j];
+    if (String(row['status']) === 'Approved') {
+      row['startDate'] = formatDate(row['startDate']);
+      row['endDate']   = formatDate(row['endDate']);
+      addPTOToCalendar(row);
+      synced++;
+    } else {
+      skipped++;
+    }
+  }
+  Logger.log('Done! Synced: ' + synced + ' approved requests. Skipped: ' + skipped);
+}
+
+// ── CLEAN WIPE AND RESYNC ─────────────────────────────────────────
+// Deletes ALL events from the calendar between two dates, then re-syncs
+// from the Requests sheet. Use this to clean up duplicates.
+// WARNING: This deletes ALL events in the date range including manual ones.
+// Run wipeAndResyncCalendar() to execute.
+function wipeCalendarEvents(fromDate, toDate) {
+  var cal = getCompanyCal();
+  if (!cal) { Logger.log('Calendar not found!'); return 0; }
+  var events = cal.getEvents(new Date(fromDate), new Date(toDate));
+  var deleted = 0;
+  for (var i = 0; i < events.length; i++) {
+    events[i].deleteEvent();
+    deleted++;
+  }
+  Logger.log('Deleted ' + deleted + ' events between ' + fromDate + ' and ' + toDate);
+  return deleted;
+}
+
+function wipeAndResyncCalendar() {
+  // Step 1: Delete all events in 2026
+  Logger.log('Step 1: Wiping all 2026 calendar events...');
+  var deleted = wipeCalendarEvents('2026-01-01', '2026-12-31');
+  Logger.log('Deleted ' + deleted + ' events.');
+
+  // Step 2: Re-sync all approved PTO as clean all-day events
+  Logger.log('Step 2: Re-syncing all approved requests as all-day events...');
+  var sheet = SS.getSheetByName('Requests');
+  if (!sheet) { Logger.log('No Requests sheet!'); return; }
+  var rows    = sheet.getDataRange().getValues();
+  var headers = rows[0];
+  var synced  = 0;
+  for (var i = 1; i < rows.length; i++) {
+    var row = {};
+    for (var j = 0; j < headers.length; j++) row[headers[j]] = rows[i][j];
+    if (String(row['status']) === 'Approved') {
+      row['startDate'] = formatDate(row['startDate']);
+      row['endDate']   = formatDate(row['endDate']);
+      addPTOToCalendar(row);
+      synced++;
+    }
+  }
+
+  // Step 3: Re-sync holidays
+  Logger.log('Step 3: Re-syncing holidays...');
+  syncHolidaysToCalendar();
+
+  Logger.log('Done! Wiped ' + deleted + ' old events, created ' + synced + ' clean all-day PTO events + holidays.');
+}
+
+// ── DEBUG (safe to leave in) ──────────────────────────────────────
+function debugSession() {
+  var email = Session.getActiveUser().getEmail();
+  var emp   = getEmployee(email);
+  Logger.log('Email: ' + email);
+  Logger.log('Employee found: ' + JSON.stringify(emp));
+}
+
+// Run this to check what status values are actually stored in Requests sheet
+function debugRequests() {
+  var sheet = SS.getSheetByName('Requests');
+  if (!sheet) { Logger.log('No Requests sheet!'); return; }
+  var rows = sheet.getDataRange().getValues();
+  Logger.log('Headers: ' + JSON.stringify(rows[0]));
+  for (var i = 1; i < rows.length; i++) {
+    var headers = rows[0];
+    var row = {};
+    for (var j = 0; j < headers.length; j++) {
+      row[headers[j]] = rows[i][j];
+    }
+    Logger.log('Row ' + i + ': email=' + row['employeeEmail'] + ' status=' + row['status'] + ' type=' + row['type'] + ' hours=' + row['hours']);
+  }
+}
