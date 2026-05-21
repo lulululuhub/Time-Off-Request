@@ -38,7 +38,18 @@ function sendStatusNotification(req) {
   else if (cancelled)  subject = 'Your time-off request has been cancelled';
   else                 subject = 'Your PTO request was not approved';
   var html = buildStatusEmail(req, approved, cancelled);
+
+  // Send to employee
   GmailApp.sendEmail(req.employeeEmail, subject, '', { htmlBody: html });
+
+  // CC all admins (skip if admin is the employee themselves)
+  var admins = getAllEmployees().filter(function(e) {
+    return e.role === 'Admin' && e.email !== req.employeeEmail;
+  });
+  var adminSubject = '[Admin CC] ' + req.employeeName + ' - ' + subject;
+  admins.forEach(function(a) {
+    GmailApp.sendEmail(a.email, adminSubject, '', { htmlBody: html });
+  });
 }
 
 // ─── EMAIL BUILDERS ───────────────────────────────────────────────
